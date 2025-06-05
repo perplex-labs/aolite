@@ -1,3 +1,4 @@
+require("aolite.compat")()
 local LocalEnv = require("aolite.env")
 local process = require("aolite.process")
 local api = require("aolite.api")

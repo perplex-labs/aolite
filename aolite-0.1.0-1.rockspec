@@ -26,6 +26,7 @@ build = {
       ["aolite.eval_exp"] = "lua/aolite/eval_exp.lua",
       ["aolite.process"] = "lua/aolite/process.lua",
       ["aolite.scheduler"] = "lua/aolite/scheduler.lua",
+      ["aolite.compat"] = "lua/aolite/compat.lua",
 
       ["aolite.ao.ao"] = "lua/aolite/ao/ao.lua",
       ["aolite.ao.assignment"] = "lua/aolite/ao/assignment.lua",
