@@ -1,4 +1,4 @@
-local bint = require("aolite.lib.bint")(256)
+local bint = require(".bint")(256)
 
 -- Helper function to serialize keys
 local function serializeKey(k)

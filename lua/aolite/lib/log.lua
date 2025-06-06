@@ -1,4 +1,4 @@
-local bint = require("aolite.lib.bint")(256)
+local bint = require(".bint")(256)
 
 local function bintToDecimalStr(number, precision)
   assert(bint.isbint(number), "bintToDecimalString: number must be a bint")
