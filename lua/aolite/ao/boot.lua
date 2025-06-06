@@ -33,7 +33,11 @@ return function(ao)
       return
     end
     if msg.Tags["On-Boot"] == "Data" then
-      eval.eval(msg)
+      -- When the On-Boot tag is "Data" we expect the process source
+      -- code to be provided in the Data field of the message. The
+      -- evaluate function expects a string expression, so pass the
+      -- message data directly instead of the full message table.
+      eval.eval(msg.Data, "Eval")
     else
       local loadedVal = drive.getData(msg.Tags["On-Boot"])
       -- log.debug("Loaded: ", loadedVal)
