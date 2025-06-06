@@ -107,5 +107,5 @@ return function()
     -- Override the require function globally
     _G.require = dualRequire
     -- Set global verbosity flag if needed by downstream projects
-    _G.PrintVerb = tonumber(os.getenv("PRINT_VERB"))
+    _G.PrintVerb = tonumber(os.getenv("AOLITE_PRINT_VERB"))
 end
