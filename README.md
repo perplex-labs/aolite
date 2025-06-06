@@ -72,6 +72,16 @@ Run the test script:
 lua test.lua
 ```
 
+## AO Compatibility
+
+`aolite` is designed to be compatible with existing AO processes using the default AO Lua module. This means globals you use in AO like `ao` or `Handlers` are present inside each process environment and you do not need to make any modifications to your existing code.
+
+```lua
+-- continue using inside process code
+ao.send(...)
+Handlers.add(...)
+```
+
 ## Examples
 
 Several small example scripts are available in the `examples` directory. Each of
