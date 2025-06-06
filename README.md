@@ -72,6 +72,20 @@ Run the test script:
 lua test.lua
 ```
 
+## Examples
+
+Several small example scripts are available in the `examples` directory. Each of
+them can be run directly with `lua` and showcases different aspects of the
+library:
+
+- `ping_pong.lua` – minimal Ping/Pong handler.
+- `eval_example.lua` – evaluating code inside a running process.
+- `scheduler_example.lua` – using the manual scheduler and message queues.
+
+```bash
+lua examples/ping_pong.lua
+```
+
 ## API Overview
 
 `aolite` provides a simple API to interact with the emulated environment.
