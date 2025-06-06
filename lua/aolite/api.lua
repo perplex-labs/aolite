@@ -55,6 +55,10 @@ function api.getAllMsgs(env, processId, matchSpec)
   return proc.process.getMsgs(matchSpec, false)
 end
 
+function api.getMsg(env, messageId)
+  return env.messageStore[messageId]
+end
+
 function api.eval(env, processId, expression)
   assert(type(processId) == "string", "processId must be defined")
   api.send(env, {

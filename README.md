@@ -106,6 +106,7 @@ lua examples/ping_pong.lua
 - `aolite.getAllMsgs(processId)`: Returns all messages sent to a given process.
 - `aolite.getLastMsg(processId)`: Returns only the last message sent to a given process.
 - `aolite.getFirstMsg(processId)`: Returns only the first message sent to a given process.
+- `aolite.getMsg(messageId)`: Retrieve a specific message by its unique ID.
 - `aolite.eval(processId, expression)`: Evaluates a Lua expression within the context of a given process and returns the result.
 - `aolite.setAutoSchedule(boolean)`: Enable or disable automatic scheduling after each `send`.
 - `aolite.runScheduler()`: Manually trigger the scheduler to process message queues.
