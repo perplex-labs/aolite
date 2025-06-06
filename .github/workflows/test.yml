@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    paths:
+      - '**.lua'
+      - spec/**
+      - Makefile
+      - .github/workflows/test.yml
+  pull_request:
+    paths:
+      - '**.lua'
+      - spec/**
+      - Makefile
+      - .github/workflows/test.yml
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: leafo/gh-actions-lua@v9
+        with:
+          lua-version: '5.4'
+      - uses: leafo/gh-actions-luarocks@v4
+      - run: luarocks install busted
+      - run: make test

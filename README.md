@@ -230,5 +230,6 @@ aolite.clearAllProcesses()
 There are no dependencies, simply modify the `lua/aolite` directory and run `luarocks make` to build the package. Luarocks will automatically install the package to your local lua path.
 
 For running the test suite, this project uses [busted](https://lunarmodules.github.io/busted/). After installing it with `luarocks install busted`, simply run `make test`.
+All pull requests are automatically tested using GitHub Actions.
 
 Contributions are welcome! Feel free to open an issue or pull request.
