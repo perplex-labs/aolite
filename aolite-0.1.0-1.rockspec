@@ -1,7 +1,7 @@
 package = "aolite"
 version = "0.1.0-1"
 source = {
-   url = "git://github.com/perplexfi/aolite",
+   url = "git://github.com/perplex-labs/aolite",
    tag = "v0.1.0"
 }
 description = {
@@ -9,9 +9,9 @@ description = {
    detailed = [[
       Provides a simulated Arweave AO environment (aolite) for developers to test
       their AO processes and interactions locally. Includes support for message passing,
-      process spawning, scheduling, and state serialization.
+      process spawning, scheduling, and process evals.
    ]],
-   homepage = "https://github.com/perplexfi/aolite",
+   homepage = "https://github.com/perplex-labs/aolite",
    license = "MIT"
 }
 dependencies = {
