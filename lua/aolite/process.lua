@@ -1,12 +1,32 @@
 local process = {}
 
 local log = require("aolite.lib.log")
+local json = require("aolite.lib.json")
 local createAO = require("aolite.ao.ao")
 local createHandlers = require("aolite.ao.handlers")
 local createProcess = require("aolite.ao.process")
 
 local initialEnv = {} -- your old `initialEnv`, if you still need it
 setmetatable(initialEnv, { __index = _G })
+
+local function appendMsgLog(env, msg)
+  local path = env.messageLogPath
+  if not path then
+    return
+  end
+  local file, err = io.open(path, "a")
+  if not file then
+    log.warn("aolocal: Unable to open message log file: " .. tostring(err))
+    return
+  end
+  local ok, encoded = pcall(json.encode, log.serializeData(msg))
+  if ok then
+    file:write(encoded .. "\n")
+  else
+    log.warn("aolocal: Failed to encode message for logging: " .. tostring(encoded))
+  end
+  file:close()
+end
 
 -- Build a new process ID from tags or fallback
 local function findTag(tags, tname)
@@ -76,6 +96,7 @@ end
 function process.send(env, msg, fromId)
   ensureStandardMessageFields(msg, fromId)
   addMsgToQueue(env, msg)
+  appendMsgLog(env, msg)
 end
 
 -- A helper to move outbox items to the correct inbound queues

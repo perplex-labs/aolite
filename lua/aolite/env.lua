@@ -9,6 +9,7 @@ function LocalAOEnv.new()
     messageStore = {}, -- all processed messages by ID
     ready = {}, -- set of processIds that have messages (and need scheduling)
     autoSchedule = true,
+    messageLogPath = os.getenv("AOLITE_MSG_LOG"),
   }
   return self
 end

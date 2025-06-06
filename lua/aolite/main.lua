@@ -72,6 +72,14 @@ function M.setAutoSchedule(mode)
   env.autoSchedule = mode
 end
 
+function M.setMessageLog(path)
+  env.messageLogPath = path
+end
+
+function M.getMessageLog()
+  return env.messageLogPath
+end
+
 function M.queue(msg)
   return api.queue(env, msg)
 end
