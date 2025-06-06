@@ -125,7 +125,7 @@ aolite.spawnProcess(
   "process1",
   sourceCodeString,
   -- You must include the On-Boot tag to ensure the code is loaded.
-  {{ name: "On-Boot", value: "Data" }}
+  { { name = "On-Boot", value = "Data" } }
 )
 ```
 
