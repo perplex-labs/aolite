@@ -124,6 +124,17 @@ local log = require("aolite.lib.log")
 log.debug("This is a debug message")
 ```
 
+If you wish to capture every message exchanged between processes, set the
+`AOLITE_MSG_LOG` environment variable to a file path or configure it at runtime
+using `aolite.setMessageLog`:
+
+```lua
+aolite.setMessageLog("./messages.log")
+```
+
+Each message queued by `aolite` will be serialized as JSON and appended to the
+specified file. You can check the current log path with `aolite.getMessageLog()`.
+
 ## Usage
 
 ### Spawning Processes
