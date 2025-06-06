@@ -242,7 +242,7 @@ function process.spawnProcess(env, originalId, dataOrPath, initEnv)
         local msgId = table.remove(env.queues[processId], 1)
         msg = env.messageStore[msgId]
 
-        if not ao.isAssignment and env.processed[msg.Id] then
+        if not ao.isAssignment(msg) and env.processed[msg.Id] then
           error("aolocal: Message already processed: " .. msg.Id)
         end
         processModule.handle(msg, processEnv)
