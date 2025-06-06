@@ -15,11 +15,10 @@ ao.spawnProcess(p2, source, { { name = "On-Boot", value = "Data" } })
 ao.setAutoSchedule(false)
 
 -- Queue some messages
-ao.queue({ From = p1, Target = p2, Action = "Print", Data = "Hello" })
-ao.queue({ From = p2, Target = p1, Action = "Print", Data = "World" })
+ao.send({ From = p1, Target = p2, Action = "Print", Data = "Hello" })
+ao.send({ From = p2, Target = p1, Action = "Print", Data = "World" })
 
 print("No messages processed yet")
 
 -- Run the scheduler manually
 ao.runScheduler()
-
