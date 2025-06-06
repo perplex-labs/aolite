@@ -81,6 +81,7 @@ library:
 - `ping_pong.lua` – minimal Ping/Pong handler.
 - `eval_example.lua` – evaluating code inside a running process.
 - `scheduler_example.lua` – using the manual scheduler and message queues.
+- `message_log_example.lua` – writing every queued message to a log file.
 
 ```bash
 lua examples/ping_pong.lua
