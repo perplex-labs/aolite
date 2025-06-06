@@ -10,7 +10,7 @@ function api.send(env, msg, clearInbox)
 
   local fromProc = env.processes[msg.From]
   if not fromProc then
-    error("aolocal: No such process: " .. tostring(msg.From))
+    error("aolite: No such process: " .. tostring(msg.From))
   end
   if clearInbox then
     fromProc.process.clearInbox()

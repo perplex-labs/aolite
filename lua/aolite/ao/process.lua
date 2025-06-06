@@ -60,20 +60,20 @@ local function createProcess(ao, Handlers)
     process.Inbox = process.Inbox or {}
     table.insert(process.Inbox, msg)
 
-    -- if msg.Action ~= "EvalRequest" and msg.Action ~= "EvalResponse" then
-    --   log.debug(
-    --     "> LOG: "
-    --     .. ao.id
-    --     .. ": Adding to Inbox["
-    --     .. #process.Inbox
-    --     .. "] --- From "
-    --     .. msg.From
-    --     .. " To "
-    --     .. ao.id
-    --     .. tostring(msg.Action and " - (Action = " .. msg.Action .. ")" or " - ()")
-    --     .. tostring(msg["X-Reference"] and " (Reply to Reference = " .. msg["X-Reference"] .. ")" or "")
-    --   )
-    -- end
+    if msg.Action ~= "EvalRequest" and msg.Action ~= "EvalResponse" then
+      log.debug(
+        "> LOG: "
+        .. ao.id
+        .. ": Adding to Inbox["
+        .. #process.Inbox
+        .. "] --- From "
+        .. msg.From
+        .. " To "
+        .. ao.id
+        .. tostring(msg.Action and " - (Action = " .. msg.Action .. ")" or " - ()")
+        .. tostring(msg["X-Reference"] and " (Reply to Reference = " .. msg["X-Reference"] .. ")" or "")
+      )
+    end
 
     if #process.Inbox > maxInboxCount then
       local overflow = #process.Inbox - maxInboxCount
@@ -85,7 +85,7 @@ local function createProcess(ao, Handlers)
 
   local function clearInbox()
     local clearedMessages = #process.Inbox
-    log.debug("Clearing " .. tostring(clearedMessages) .. " messages from Inbox")
+    log.debug("> LOG: Clearing " .. tostring(clearedMessages) .. " messages from Inbox")
     process.Inbox = {}
     return clearedMessages -- Return the number of messages cleared
   end

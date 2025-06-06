@@ -16,14 +16,14 @@ local function appendMsgLog(env, msg)
   end
   local file, err = io.open(path, "a")
   if not file then
-    log.warn("aolocal: Unable to open message log file: " .. tostring(err))
+    log.warn("aolite: Unable to open message log file: " .. tostring(err))
     return
   end
   local ok, encoded = pcall(json.encode, log.serializeData(msg))
   if ok then
     file:write(encoded .. "\n")
   else
-    log.warn("aolocal: Failed to encode message for logging: " .. tostring(encoded))
+    log.warn("aolite: Failed to encode message for logging: " .. tostring(encoded))
   end
   file:close()
 end
@@ -68,22 +68,22 @@ local function ensureStandardMessageFields(msg, sourceId)
   msg.Tags = msg.Tags or {}
 
   local _reference = findObject(msg.Tags, "name", "Reference")
-  assert(_reference, "aolocal: Reference tag is missing")
+  assert(_reference, "aolite: Reference tag is missing")
 
   msg.Id = msg.From .. ":" .. _reference.value
 end
 
 local function addMsgToQueue(env, msg)
   if not msg.Target then
-    error("aolocal: Target process is nil")
+    error("aolite: Target process is nil")
   end
   if not env.queues or not env.queues[msg.Target] then
-    error("aolocal: Target process not found: " .. tostring(msg.Target))
+    error("aolite: Target process not found: " .. tostring(msg.Target))
   end
 
   if env.messageStore[msg.Id] then
     -- TODO: Find why some messages already exist in the store
-    -- log.debug("aolocal: Message for " .. msg.Target .. " already exists in store: " .. msg.Id .. " (skipped)")
+    -- log.debug("aolite: Message for " .. msg.Target .. " already exists in store: " .. msg.Id .. " (skipped)")
   else
     -- log.debug("AddMsgToQueue of " .. msg.Target .. ":", msg)
     env.messageStore[msg.Id] = msg
@@ -102,7 +102,7 @@ end
 -- A helper to move outbox items to the correct inbound queues
 function process.deliverOutbox(env, fromId, pushedFor)
   local proc = env.processes[fromId]
-  assert(proc, "aolocal: Process not found: " .. tostring(fromId))
+  assert(proc, "aolite: Process not found: " .. tostring(fromId))
   local ao = proc.ao
   local outbox = ao.outbox
 
@@ -125,7 +125,7 @@ function process.deliverOutbox(env, fromId, pushedFor)
 
   for _, assignment in ipairs(outbox.Assignments) do
     if not assignment.Message or not assignment.Processes then
-      log.warn("aolocal: Invalid assignment structure; missing fields")
+      log.warn("aolite: Invalid assignment structure; missing fields")
     else
       local refMsg = env.messageStore[assignment.Message]
       if refMsg then
@@ -134,7 +134,7 @@ function process.deliverOutbox(env, fromId, pushedFor)
             table.insert(env.queues[pid], refMsg.Id)
             env.ready[pid] = true
           else
-            error("aolocal: Target process not found: " .. tostring(pid))
+            error("aolite: Target process not found: " .. tostring(pid))
           end
         end
       end
@@ -147,9 +147,9 @@ end
 function process.spawnProcess(env, originalId, dataOrPath, initEnv)
   assert(originalId, "parentId must be defined")
   if env.processes[originalId] then
-    error("aolocal: Process with ID " .. originalId .. " already exists")
+    error("aolite: Process with ID " .. originalId .. " already exists")
   end
-  log.debug("aolocal: Spawning process with ID: " .. originalId)
+  log.debug("> LOG: Spawning process with ID: " .. originalId)
 
   -- local refVal = findTag(tags, "Reference")
   local processId = originalId
@@ -227,7 +227,7 @@ function process.spawnProcess(env, originalId, dataOrPath, initEnv)
     else
       -- Print both errors for better visibility
       log.warn(
-        "aolocal: Failed to load module: "
+        "aolite: Failed to load module: "
         .. moduleName
         .. "\nFirst attempt error: "
         .. tostring(firstError)
@@ -264,7 +264,7 @@ function process.spawnProcess(env, originalId, dataOrPath, initEnv)
         msg = env.messageStore[msgId]
 
         if not ao.isAssignment(msg) and env.processed[msg.Id] then
-          error("aolocal: Message already processed: " .. msg.Id)
+          error("aolite: Message already processed: " .. msg.Id)
         end
         processModule.handle(msg, processEnv)
         env.processed[msg.Id] = true
