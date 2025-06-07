@@ -1,28 +1,46 @@
 name: CI
 
 on:
-  push:
-    paths:
-      - '**.lua'
-      - spec/**
-      - Makefile
-      - .github/workflows/test.yml
   pull_request:
-    paths:
-      - '**.lua'
-      - spec/**
-      - Makefile
-      - .github/workflows/test.yml
+  push:
+    branches:
+      - main
+      - dev
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      luaVersion: "5.4"
+      luarocksVersion: "3.11.1"
+
     steps:
-      - uses: actions/checkout@v3
-      - uses: leafo/gh-actions-lua@v9
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Lua
+        uses: leafo/gh-actions-lua@v10
         with:
-          luaVersion: '5.4'
-          buildCache: false
-      - uses: leafo/gh-actions-luarocks@v4
-      - run: luarocks install busted
-      - run: make test
+          luaVersion: ${{ env.luaVersion }}
+
+      - name: Setup LuaRocks
+        uses: leafo/gh-actions-luarocks@v4
+        with:
+          luarocksVersion: ${{ env.luarocksVersion }}
+
+      - name: Install test runner
+        run: luarocks install busted
+
+      - name: Add LuaRocks Bin to PATH
+        run: echo "$HOME/.luarocks/bin" >> $GITHUB_PATH
+
+      # - name: Set LUA_PATH
+      #   run: |
+      #     echo "LUA_PATH=${{ github.workspace }}/test/mocked-env/lib/?.lua;$HOME/.luarocks/share/lua/5.3/?.lua;$HOME/.luarocks/share/lua/5.3/?/init.lua;;" >> $GITHUB_ENV
+
+      - name: Run   
+        run: make test
+          # eval "$(luarocks path --lua-version=5.4)"
+          # LUA_PATH="./lua/?.lua;./lua/?/init.lua;./lua/?/main.lua;./lua/?/?/?.lua;./lua/?/?/init.lua;./lua/?/?/?/?.lua;$LUA_PATH"
+          # busted --lua=lua spec
+        # run: luarocks exec -- busted --lua=lua spec
