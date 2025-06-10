@@ -34,8 +34,12 @@ function M.getAllMsgs(processId, matchSpec)
   return api.getAllMsgs(env, processId, matchSpec)
 end
 
-function M.getMsg(messageId)
-  return api.getMsg(env, messageId)
+function M.getMsgsById(messageId)
+  return api.getMsgsById(env, messageId)
+end
+
+function M.getMsg(matchSpec)
+  return api.getMsg(env, matchSpec)
 end
 
 function M.eval(processId, expression)

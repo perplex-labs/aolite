@@ -99,14 +99,15 @@ lua examples/ping_pong.lua
 
 ## API Overview
 
-`aolite` provides a simple API to interact with the emulated environment.
+-`aolite` provides a simple API to interact with the emulated environment.
 
 - `aolite.spawnProcess(processId, dataOrPath, tags)`: Spawns a new process from source code or a file path.
 - `aolite.send(msg)`: Sends a message to a process. The scheduler runs automatically by default.
 - `aolite.getAllMsgs(processId)`: Returns all messages sent to a given process.
 - `aolite.getLastMsg(processId)`: Returns only the last message sent to a given process.
 - `aolite.getFirstMsg(processId)`: Returns only the first message sent to a given process.
-- `aolite.getMsg(messageId)`: Retrieve a specific message by its unique ID.
+- `aolite.getMsgsById(messageId)`: Retrieve a specific message by its unique ID.
+- `aolite.getMsg(matchSpec)`: Find messages matching a spec across all processes.
 - `aolite.eval(processId, expression)`: Evaluates a Lua expression within the context of a given process and returns the result.
 - `aolite.setAutoSchedule(boolean)`: Enable or disable automatic scheduling after each `send`.
 - `aolite.runScheduler()`: Manually trigger the scheduler to process message queues.

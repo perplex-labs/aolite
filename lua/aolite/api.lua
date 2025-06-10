@@ -55,8 +55,19 @@ function api.getAllMsgs(env, processId, matchSpec)
   return proc.process.getMsgs(matchSpec, false)
 end
 
-function api.getMsg(env, messageId)
+function api.getMsgsById(env, messageId)
   return env.messageStore[messageId]
+end
+
+function api.getMsg(env, matchSpec)
+  local utils = require("aolite.lib.utils")
+  local results = {}
+  for _, msg in pairs(env.messageStore) do
+    if utils.matchesSpec(msg, matchSpec) then
+      table.insert(results, msg)
+    end
+  end
+  return results
 end
 
 function api.eval(env, processId, expression)

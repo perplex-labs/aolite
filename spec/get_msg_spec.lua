@@ -6,7 +6,7 @@ Handlers.add("Ping", function(msg)
 end)
 ]]
 
-describe("aolite.getMsg", function()
+describe("aolite.getMsgsById and getMsg", function()
   before_each(function()
     aolite.clearAllProcesses()
     aolite.spawnProcess("sender", "return true", {
@@ -29,8 +29,22 @@ describe("aolite.getMsg", function()
     local resp = aolite.getLastMsg("sender")
     assert.is_not_nil(resp)
 
-    local fetched = aolite.getMsg(resp.Id)
+    local fetched = aolite.getMsgsById(resp.Id)
     assert.is_not_nil(fetched)
     assert.are.same(resp, fetched)
+  end)
+
+  it("finds messages matching a spec across processes", function()
+    aolite.send({
+      From = "sender",
+      Target = "receiver",
+      Action = "Ping",
+      Data = "world",
+      Tags = { { name = "Reference", value = "2" } },
+    })
+
+    local results = aolite.getMsg({ Action = "Pong", Data = "world" })
+    assert.are.equal(1, #results)
+    assert.are.equal("Pong", results[1].Action)
   end)
 end)
