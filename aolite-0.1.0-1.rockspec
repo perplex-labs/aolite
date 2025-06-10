@@ -1,8 +1,8 @@
 package = "aolite"
-version = "0.1.0-1"
+version = "0.2.0-1"
 source = {
    url = "git://github.com/perplex-labs/aolite",
-   tag = "v0.1.0"
+   tag = "v0.2.0"
 }
 description = {
    summary = "A local, concurrent emulation of the AO protocol for testing Lua processes.",
