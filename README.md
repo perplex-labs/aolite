@@ -24,6 +24,7 @@ luarocks install aolite
 ```
 
 or build it from inside this repository directly:
+
 ```bash
 luarocks make
 ```
@@ -33,6 +34,7 @@ luarocks make
 Here's a simple example of how to use `aolite` to test a process.
 
 First, create a simple process file `process-source.lua` (or use your existing process source code file):
+
 ```lua
 -- process-source.lua
 print("Process loaded with ID: " .. ao.id)
@@ -42,6 +44,7 @@ end)
 ```
 
 Now, you can write a test script to spawn and interact with this process:
+
 ```lua
 -- test.lua
 local aolite = require("aolite")
@@ -68,6 +71,7 @@ print("Response from process: " .. response.Action)
 ```
 
 Run the test script:
+
 ```bash
 lua test.lua
 ```
@@ -106,8 +110,8 @@ lua examples/ping_pong.lua
 - `aolite.getAllMsgs(processId)`: Returns all messages sent to a given process.
 - `aolite.getLastMsg(processId)`: Returns only the last message sent to a given process.
 - `aolite.getFirstMsg(processId)`: Returns only the first message sent to a given process.
-- `aolite.getMsgsById(messageId)`: Retrieve a specific message by its unique ID.
-- `aolite.getMsg(matchSpec)`: Find messages matching a spec across all processes.
+- `aolite.getMsgById(messageId)`: Retrieve a specific message by its unique ID.
+- `aolite.getMsgs(matchSpec)`: Find messages matching a spec across all processes.
 - `aolite.eval(processId, expression)`: Evaluates a Lua expression within the context of a given process and returns the result.
 - `aolite.setAutoSchedule(boolean)`: Enable or disable automatic scheduling after each `send`.
 - `aolite.runScheduler()`: Manually trigger the scheduler to process message queues.
@@ -128,10 +132,13 @@ The log level can be set to one of the following:
 - `3` (debug)
 
 You can also set the log level in the test script:
+
 ```lua
 PrintVerb = 3
 ```
+
 and use the log module yourself:
+
 ```lua
 local log = require("aolite.lib.log")
 log.debug("This is a debug message")
@@ -155,6 +162,7 @@ specified file. You can check the current log path with `aolite.getMessageLog()`
 There are two ways to load code when spawning a process:
 
 1. From a string:
+
 ```lua
 local sourceCodeString = [[
 print("Hello, world!")
@@ -168,6 +176,7 @@ aolite.spawnProcess(
 ```
 
 2. From a file:
+
 ```lua
 aolite.spawnProcess(
   "process1",
@@ -232,15 +241,19 @@ print("First message: " .. msg.Action)
 By default, `aolite` will automatically run the scheduler right when you send a message. You can disable this by setting `aolite.setAutoSchedule(false)`.
 
 You can manually run the scheduler by calling `aolite.runScheduler()`.
+
 ```lua
 aolite.runScheduler()
 ```
 
 You can also use the `aolite.queue` function to manually queue a message without running the scheduler.
+
 ```lua
 aolite.queue(msg)
 ```
+
 You can use the `aolite.listQueueMessages` function to get the full list of messages in the queue for a specific process.
+
 ```lua
 local msgs = aolite.listQueueMessages("process1")
 print("Queue:")
@@ -250,6 +263,7 @@ end
 ```
 
 You can use the `aolite.reorderQueue` function to manually reorder the queue for a specific process. This is useful if you want to prioritize certain messages or if you want to simulate a different order of messages.
+
 ```lua
 aolite.reorderQueue("process1", { "msg-id-1", "msg-id-2", "msg-id-3" })
 aolite.runScheduler()
@@ -258,10 +272,10 @@ aolite.runScheduler()
 ### Cleaning Up
 
 You can reset the environment by calling `aolite.clearAllProcesses()`.
+
 ```lua
 aolite.clearAllProcesses()
 ```
-
 
 ## Development
 
