@@ -8,6 +8,8 @@
 
 AOLite embeds the **AO runtime** inside a single Lua VM so tests or back-tests can create many processes, queue messages, reorder queues, and drive a deterministic coroutine-based scheduler — **all without Arweave / Bundlr or a real network**.
 
+Refer to the root `AGENTS.md` for repository structure.  The lower level utility modules are documented in `lua/aolite/lib/AGENTS.md` while the embedded runtime is described in `lua/aolite/ao/AGENTS.md`.
+
 ---
 
 ### Key Data Structures & Fields
@@ -92,3 +94,13 @@ AOLite embeds the **AO runtime** inside a single Lua VM so tests or back-tests c
 * **In-process `require(module, processEnv)`** (second arg) triggers sandboxed chunk load to keep globals isolated.
 
 The documentation above enables another LLM to reconstruct the full in-memory simulation pipeline, implement additional utilities, or generate tests that leverage AOLite’s local AO environment.
+
+### Testing
+
+Run the repository level tests with:
+
+```bash
+make test
+```
+
+Refer to the root `AGENTS.md` for additional contribution guidelines.

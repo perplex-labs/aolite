@@ -16,6 +16,8 @@ Foundational helper layer for AOLite agents:
 
 All other runtime packages (e.g. `ao`, `process`) lean on this folder for math, encoding, logging, pattern matching and pure-Lua functional glue.
 
+Refer to the root `AGENTS.md` for repository layout and contribution guidelines. The main runtime using these helpers is documented in `../ao/AGENTS.md`.
+
 ---
 
 ### Key Data Structures & Fields
@@ -112,3 +114,11 @@ All other runtime packages (e.g. `ao`, `process`) lean on this folder for math, 
 ---
 
 With these modules documented, an LLM can fully emulate math, encoding, logging, serialization and functional helpers that the larger AOLite agent runtime expects.
+
+### Testing
+
+Run the repository test suite:
+
+```bash
+make test
+```
