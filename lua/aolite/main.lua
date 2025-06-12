@@ -61,8 +61,8 @@ function M.clearAllProcesses()
 end
 
 -- Concurrency: Scheduling & Reordering
-function M.runScheduler()
-	scheduler.run(env)
+function M.runScheduler(cycles)
+	scheduler.run(env, cycles)
 end
 
 function M.isAutoSchedule()
