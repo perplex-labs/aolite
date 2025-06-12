@@ -12,6 +12,8 @@ Core surfaces two primary objects to every script:
 * **`ao`** – sandboxed gateway for messaging, spawning, assignment & misc helpers.
 * **`Handlers`** – dynamic registry that routes inbound messages (or cron ticks) to user callbacks.
 
+See `../AGENTS.md` for how this runtime integrates with the surrounding modules and consult the root `AGENTS.md` for contribution guidelines.
+
 ---
 
 ### Key Data Structures & Fields
@@ -108,3 +110,11 @@ print("received", resp.Action)
 ```
 
 An LLM can now reconstruct full agent behavior, extend the runtime, or generate new processes using only the abstractions documented above.
+
+### Testing
+
+Run all tests from the repository root:
+
+```bash
+make test
+```
