@@ -26,33 +26,33 @@ function Assignment.init(ao)
   -- @treturn ?string|number name The name of the MatchSpec, either as provided
   --          as an argument or as incremented
   ao.addAssignable = ao.addAssignable
-      or function(...)
-        local name = nil
-        local matchSpec = nil
+    or function(...)
+      local name = nil
+      local matchSpec = nil
 
-        local idx = nil
+      local idx = nil
 
-        -- Initialize the parameters based on arguments
-        if select("#", ...) == 1 then
-          matchSpec = select(1, ...)
-        else
-          name = select(1, ...)
-          matchSpec = select(2, ...)
-          assert(type(name) == "string", "MatchSpec name MUST be a string")
-        end
-
-        if name then
-          idx = findIndexByProp(ao.assignables, "name", name)
-        end
-
-        if idx ~= nil and idx > 0 then
-          -- found update
-          ao.assignables[idx].pattern = matchSpec
-        else
-          -- append the new assignable, including potentially nil name
-          table.insert(ao.assignables, { pattern = matchSpec, name = name })
-        end
+      -- Initialize the parameters based on arguments
+      if select("#", ...) == 1 then
+        matchSpec = select(1, ...)
+      else
+        name = select(1, ...)
+        matchSpec = select(2, ...)
+        assert(type(name) == "string", "MatchSpec name MUST be a string")
       end
+
+      if name then
+        idx = findIndexByProp(ao.assignables, "name", name)
+      end
+
+      if idx ~= nil and idx > 0 then
+        -- found update
+        ao.assignables[idx].pattern = matchSpec
+      else
+        -- append the new assignable, including potentially nil name
+        table.insert(ao.assignables, { pattern = matchSpec, name = name })
+      end
+    end
 
   -- Remove the MatchSpec, either by name or by index
   -- If the name is not found, or if the index does not exist, then do nothing.
@@ -60,22 +60,22 @@ function Assignment.init(ao)
   -- @tparam string|number name The name or index of the MatchSpec to be removed
   -- @treturn nil nil
   ao.removeAssignable = ao.removeAssignable
-      or function(name)
-        local idx = nil
+    or function(name)
+      local idx = nil
 
-        if type(name) == "string" then
-          idx = findIndexByProp(ao.assignables, "name", name)
-        else
-          assert(type(name) == "number", "index MUST be a number")
-          idx = name
-        end
-
-        if idx == nil or idx <= 0 or idx > #ao.assignables then
-          return
-        end
-
-        table.remove(ao.assignables, idx)
+      if type(name) == "string" then
+        idx = findIndexByProp(ao.assignables, "name", name)
+      else
+        assert(type(name) == "number", "index MUST be a number")
+        idx = name
       end
+
+      if idx == nil or idx <= 0 or idx > #ao.assignables then
+        return
+      end
+
+      table.remove(ao.assignables, idx)
+    end
 
   -- Return whether the msg is an assignment or not. This
   -- can be determined by simply check whether the msg's Target is
@@ -93,19 +93,19 @@ function Assignment.init(ao)
   -- @param msg The msg to be checked
   -- @treturn boolean isAssignable
   ao.isAssignable = ao.isAssignable
-      or function(msg)
-        for _, assignable in pairs(ao.assignables) do
-          if utils.matchesSpec(msg, assignable.pattern) then
-            return true
-          end
+    or function(msg)
+      for _, assignable in pairs(ao.assignables) do
+        if utils.matchesSpec(msg, assignable.pattern) then
+          return true
         end
-
-        -- If assignables is empty, the the above loop will noop,
-        -- and this expression will execute.
-        --
-        -- In other words, all msgs are not assignable, by default.
-        return false
       end
+
+      -- If assignables is empty, the the above loop will noop,
+      -- and this expression will execute.
+      --
+      -- In other words, all msgs are not assignable, by default.
+      return false
+    end
 end
 
 return Assignment

@@ -25,11 +25,11 @@ local function createHandlers(processId)
     assert(
       type(name) == "string" and (type(pattern) == "function" or type(pattern) == "table" or type(pattern) == "string"),
       "Invalid arguments given. Expected: \n"
-      .. "\tname : string, "
-      .. "\tpattern : Action : string | MsgMatch : table,\n"
-      .. "\t\tfunction(msg: Message) : {-1 = break, 0 = skip, 1 = continue},\n"
-      .. "\thandle(msg : Message) : void) | Resolver,\n"
-      .. '\tMaxRuns? : number | "inf" | nil'
+        .. "\tname : string, "
+        .. "\tpattern : Action : string | MsgMatch : table,\n"
+        .. "\t\tfunction(msg: Message) : {-1 = break, 0 = skip, 1 = continue},\n"
+        .. "\thandle(msg : Message) : void) | Resolver,\n"
+        .. '\tMaxRuns? : number | "inf" | nil'
     )
   end
 

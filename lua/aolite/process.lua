@@ -228,11 +228,11 @@ function process.spawnProcess(env, originalId, dataOrPath, initEnv)
       -- Print both errors for better visibility
       log.warn(
         "aolite: Failed to load module: "
-        .. moduleName
-        .. "\nFirst attempt error: "
-        .. tostring(firstError)
-        .. "\nSecond attempt error: "
-        .. tostring(result2)
+          .. moduleName
+          .. "\nFirst attempt error: "
+          .. tostring(firstError)
+          .. "\nSecond attempt error: "
+          .. tostring(result2)
       )
     end
   end
