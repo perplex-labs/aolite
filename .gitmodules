@@ -1,0 +1,4 @@
+[submodule "lua/aos"]
+	path = lua/aos
+	url = https://github.com/permaweb/aos.git
+	branch = main
