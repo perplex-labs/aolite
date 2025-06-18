@@ -1,5 +1,5 @@
 local function createProcess(ao, Handlers)
-  local log = require("aolite.lib.log")
+  local log = require(".log")
   local coroutine = require("coroutine")
 
   Colors = {
@@ -12,9 +12,9 @@ local function createProcess(ao, Handlers)
 
   Bell = "\x07"
 
-  Utils = require("aolite.lib.utils")
+  Utils = require(".utils")
   -- Implement assignable polyfills on _ao
-  local assignment = require("aolite.ao.assignment")
+  local assignment = require(".assignment")
   assignment.init(ao)
 
   local process = {
@@ -29,14 +29,14 @@ local function createProcess(ao, Handlers)
   ao.send = function(msg)
     if msg.Data and type(msg.Data) == "table" then
       msg["Content-Type"] = "application/json"
-      msg.Data = require("aolite.lib.json").encode(msg.Data)
+      msg.Data = require("json").encode(msg.Data)
     end
     return aosend(msg)
   end
   ao.spawn = function(module, msg)
     if msg.Data and type(msg.Data) == "table" then
       msg["Content-Type"] = "application/json"
-      msg.Data = require("aolite.lib.json").encode(msg.Data)
+      msg.Data = require("json").encode(msg.Data)
     end
     return aospawn(module, msg)
   end
@@ -324,7 +324,7 @@ local function createProcess(ao, Handlers)
     ao.env.Process.Tags = Tab(ao.env.Process)
     -- magic table - if Content-Type == application/json - decode msg.Data to a Table
     if msg.Tags["Content-Type"] and msg.Tags["Content-Type"] == "application/json" then
-      msg.Data = require("aolite.lib.json").decode(msg.Data or "{}")
+      msg.Data = require("json").decode(msg.Data or "{}")
     end
     -- init Errors
     Errors = Errors or {}
@@ -362,11 +362,11 @@ local function createProcess(ao, Handlers)
     -- See: https://github.com/permaweb/aos/issues/342
     Handlers.once("_boot", function(msg)
       return msg.Tags.Type == "Process" --and Owner == msg.From
-    end, require("aolite.ao.boot")(ao))
+    end, require(".boot")(ao))
 
     Handlers.append("_default", function()
       return true
-    end, require("aolite.ao.default")(insertInbox))
+    end, require(".default")(insertInbox))
 
     -- call evaluate from handlers passing env
     msg.reply = function(replyMsg)

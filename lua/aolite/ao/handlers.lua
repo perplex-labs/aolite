@@ -1,9 +1,9 @@
 local function createHandlers(processId)
   local handlers = { _version = "0.0.3" }
   local coroutine = require("coroutine")
-  local utils = require("aolite.lib.utils")
-  local log = require("aolite.lib.log")
-  handlers.utils = require("aolite.ao.handlers-utils")
+  local utils = require(".utils")
+  local log = require(".log")
+  handlers.utils = require(".handlers-utils")
 
   -- Initialize handler lists and coroutines
   handlers.list = handlers.list or {}

@@ -1,6 +1,6 @@
 local api = {}
-local json = require("aolite.lib.json")
-local serialize = require("aolite.lib.serialize")
+local json = require("json")
+local serialize = require(".serialize")
 local scheduler = require("aolite.scheduler")
 local process = require("aolite.process")
 
@@ -60,7 +60,7 @@ function api.getMsgById(env, messageId)
 end
 
 function api.getMsgs(env, matchSpec)
-  local utils = require("aolite.lib.utils")
+  local utils = require(".utils")
   local results = {}
   for _, msg in pairs(env.messageStore) do
     if utils.matchesSpec(msg, matchSpec) then

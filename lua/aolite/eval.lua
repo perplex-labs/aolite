@@ -1,5 +1,5 @@
-local serialize = require("aolite.lib.serialize")
-local json = require("aolite.lib.json")
+local serialize = require(".serialize")
+local json = require("json")
 local eval = require("aolite.eval_exp")
 
 -- Eval Handler

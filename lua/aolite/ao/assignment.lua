@@ -1,5 +1,5 @@
 local Assignment = { _version = "0.1.0" }
-local utils = require("aolite.lib.utils")
+local utils = require(".utils")
 
 -- Implement assignable polyfills on _ao
 function Assignment.init(ao)

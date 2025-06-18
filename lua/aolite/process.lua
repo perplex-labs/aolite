@@ -1,10 +1,10 @@
 local process = {}
 
-local log = require("aolite.lib.log")
-local json = require("aolite.lib.json")
-local createAO = require("aolite.ao.ao")
-local createHandlers = require("aolite.ao.handlers")
-local createProcess = require("aolite.ao.process")
+local log = require(".log")
+local json = require(".json")
+local createAO = require(".ao") -- TODO: Fix
+local createHandlers = require(".handlers")
+local createProcess = require(".process")
 
 local initialEnv = {} -- your old `initialEnv`, if you still need it
 setmetatable(initialEnv, { __index = _G })

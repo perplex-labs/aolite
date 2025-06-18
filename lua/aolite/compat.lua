@@ -4,32 +4,31 @@ local originalRequire = require
 local function resolveModulePath(moduleName)
   -- Mapping of module names to paths
   local moduleMap = {
-    -- aolite core and helpers
-    ["aolocal"] = "aolite", -- main aolite module (lua/aolite/main.lua)
-    [".local_env"] = "aolite.env",
-    [".local_process"] = "aolite.process",
-    [".local_scheduler"] = "aolite.scheduler",
-    [".local_api"] = "aolite.api",
-    [".local_eval_exp"] = "aolite.eval_exp", -- Maps to lua/aolite/eval_exp.lua
+    ["env"] = "aolite.env",
+    [".log"] = "aolite.lib.log",
+    [".serialize"] = "aolite.lib.serialize",
+    [".json"] = "aolite.lib.json",
+    ["json"] = "aolite.lib.json",
 
     -- ao namespace, aliased
-    ["process"] = "aolite.ao.process", -- Refers to the AO-specific process
-    ["ao"] = "aolite.ao.ao",
-    [".ao"] = "aolite.ao.ao",
-    [".boot"] = "aolite.ao.boot",
-    [".default"] = "aolite.ao.default",
-    [".assignment"] = "aolite.ao.assignment",
-    ["env"] = "aolite.env", -- General aolite.env, not aolite.ao.env
-    [".handlers-utils"] = "aolite.ao.handlers-utils",
-    ["handlers"] = "aolite.ao.handlers",
-    [".handlers"] = "aolite.ao.handlers",
-
-    -- lib namespace, aliased
-    [".log"] = "aolite.lib.log",
-    [".bint"] = "aolite.lib.bint",
-    [".utils"] = "aolite.lib.utils",
-    [".serialize"] = "aolite.lib.serialize", -- Standardized to aolite.lib.serialize
-    ["json"] = "aolite.lib.json",
+    -- ["process"] = "aos.process.process",
+    [".process"] = "aos.process.process",
+    ["ao"] = "aos.process.ao",
+    [".ao"] = "aos.process.ao",
+    [".boot"] = "aos.process.boot",
+    [".default"] = "aos.process.default",
+    [".assignment"] = "aos.process.assignment",
+    [".handlers-utils"] = "aos.process.handlers-utils",
+    [".handlers"] = "aos.process.handlers",
+    -- ["handlers"] = "aos.process.handlers",
+    [".base64"] = "aos.process.base64",
+    [".chance"] = "aos.process.chance",
+    [".pretty"] = "aos.process.pretty",
+    [".dump"] = "aos.process.dump",
+    [".stringify"] = "aos.process.stringify",
+    [".apm"] = "aos.process.apm",
+    [".bint"] = "aos.process.bint",
+    [".utils"] = "aos.process.utils",
 
     -- other standard mappings
     ["bit"] = "bit32", -- Mapping to bit32 library
@@ -43,7 +42,7 @@ local function resolveModulePath(moduleName)
   -- Handle all ".crypto" submodules dynamically
   -- e.g., require(".crypto.public") becomes require("aolite.lib.crypto.public")
   if moduleName:match("^%.crypto") then
-    return moduleName:gsub("^%.crypto", "aolite.lib.crypto", 1)
+    return moduleName:gsub("^%.crypto", "aos.process.crypto", 1)
   end
 
   -- If no specific match, return the module name itself for standard Lua resolution

@@ -1,7 +1,7 @@
 local _utils = { _version = "0.0.1" }
 
-local utils = require("aolite.lib.utils")
-local ao = require("aolite.ao.ao")()
+local utils = require(".utils")
+local ao = require(".ao") -- TODO: Fix?
 
 function _utils.matchesSpec(msg, spec)
   if type(spec) == "function" then
