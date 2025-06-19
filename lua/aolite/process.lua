@@ -2,9 +2,9 @@ local process = {}
 
 local log = require(".log")
 local json = require(".json")
-local createAO = require(".ao") -- TODO: Fix
-local createHandlers = require(".handlers")
-local createProcess = require(".process")
+local createAO = require("aolite.factories.ao")
+local createHandlers = require("aolite.factories.handlers")
+local createProcess = require("aolite.factories.process")
 
 local initialEnv = {} -- your old `initialEnv`, if you still need it
 setmetatable(initialEnv, { __index = _G })
@@ -28,8 +28,10 @@ local function appendMsgLog(env, msg)
   file:close()
 end
 
--- Build a new process ID from tags or fallback
 local function findTag(tags, tname)
+  if not tags then
+    return nil
+  end
   if tags then
     for _, t in ipairs(tags) do
       if t.name == tname then
@@ -71,6 +73,23 @@ local function ensureStandardMessageFields(msg, sourceId)
   assert(_reference, "aolite: Reference tag is missing")
 
   msg.Id = msg.From .. ":" .. _reference.value
+
+  -- Propagate Module tag to root field for upstream compatibility
+  if not msg.Module then
+    local _moduleTag = findObject(msg.Tags, "name", "Module")
+    if _moduleTag then
+      msg.Module = _moduleTag.value
+    end
+  end
+
+  if msg["Block-Height"] == nil then
+    local _bhTag = findObject(msg.Tags, "name", "Block-Height")
+    if _bhTag then
+      msg["Block-Height"] = tonumber(_bhTag.value) or _bhTag.value
+    else
+      msg["Block-Height"] = 0 -- fallback for tests, TODO: simulate?
+    end
+  end
 end
 
 local function addMsgToQueue(env, msg)
@@ -95,6 +114,16 @@ end
 
 function process.send(env, msg, fromId)
   ensureStandardMessageFields(msg, fromId)
+  log.debug(
+    "[message]: "
+      .. fromId
+      .. " -> "
+      .. msg.Target
+      .. " (Action = "
+      .. (findTag(msg.Tags, "Action") or "?")
+      .. ") "
+      .. msg.Id
+  )
   addMsgToQueue(env, msg)
   appendMsgLog(env, msg)
 end
@@ -174,8 +203,15 @@ function process.spawnProcess(env, originalId, dataOrPath, initEnv)
     Handlers = handlers,
     ao = ao,
     Module = { Id = moduleId },
+    -- Ensure each sandbox starts with its own isolated Inbox so that look-ups
+    -- never fall back to the host _G.Inbox table via the metatable chain.
+    Inbox = {},
     -- plus any other environment fields
   }
+  -- Provide Receive() helper like upstream so user code can call it directly
+  processEnv.Receive = function(match)
+    return handlers.receive(match)
+  end
   setmetatable(processEnv, { __index = initialEnv })
 
   -- Promote initEnv to globals
@@ -187,8 +223,13 @@ function process.spawnProcess(env, originalId, dataOrPath, initEnv)
   processEnv._G = processEnv
   processEnv._ENV = processEnv
 
-  -- Inject relevant variable into processEnv
-  processEnv.Receive = processModule.Receive
+  -- keep pointer to outer simulator environment for factories
+  processEnv._parent = env
+
+  -- If upstream placed a global Receive function in the sandbox, prefer it.
+  if type(processModule.Receive) == "function" then
+    processEnv.Receive = processModule.Receive
+  end
 
   -- Create a local package table in processEnv
   processEnv.package = {
@@ -288,6 +329,9 @@ function process.spawnProcess(env, originalId, dataOrPath, initEnv)
     end
   end
   processEnv.require("aolite.eval")
+
+  -- Ensure AO table knows its environment before any messages arrive
+  ao.env = processEnv
 
   return env.processes[processId]
 end

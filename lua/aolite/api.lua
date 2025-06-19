@@ -72,15 +72,18 @@ end
 
 function api.eval(env, processId, expression)
   assert(type(processId) == "string", "processId must be defined")
+  -- EvalRequest expects the code in the Data field so that it survives
+  -- ao.send (which only preserves Target and Data in the root table).
   api.send(env, {
     From = processId,
     Target = processId,
     Action = "EvalRequest",
-    Expression = expression,
+    Data = expression,
   })
 
   local matchSpec = { From = processId, Action = "EvalResponse" }
   local resp = api.getLastMsg(env, processId, matchSpec)
+
   if resp and resp.Error then
     error("Error in evaluation: " .. resp.Error)
   end

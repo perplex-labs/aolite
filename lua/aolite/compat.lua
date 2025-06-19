@@ -10,16 +10,18 @@ local function resolveModulePath(moduleName)
     [".json"] = "aolite.lib.json",
     ["json"] = "aolite.lib.json",
 
-    -- ao namespace, aliased
+    -- ao factory wrappers
     -- ["process"] = "aos.process.process",
-    [".process"] = "aos.process.process",
-    ["ao"] = "aos.process.ao",
-    [".ao"] = "aos.process.ao",
+    [".process"] = "aolite.factories.process",
+    ["ao"] = "aolite.factories.ao",
+    [".ao"] = "aolite.factories.ao",
+    [".handlers"] = "aolite.factories.handlers",
+    -- ao namespace, aliased
     [".boot"] = "aos.process.boot",
     [".default"] = "aos.process.default",
     [".assignment"] = "aos.process.assignment",
+    [".eval"] = "aos.process.eval",
     [".handlers-utils"] = "aos.process.handlers-utils",
-    [".handlers"] = "aos.process.handlers",
     -- ["handlers"] = "aos.process.handlers",
     [".base64"] = "aos.process.base64",
     [".chance"] = "aos.process.chance",

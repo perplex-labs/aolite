@@ -48,9 +48,13 @@ end
 
 function M.clearAllProcesses()
   -- Stop tracking all processes in env.processes
-  for pid, _ in pairs(env.processes) do
+  for pid, proc in pairs(env.processes) do
     env.coroutines[pid] = nil
     env.queues[pid] = nil
+    -- wipe per-sandbox inbox created during execution
+    if proc.env then
+      proc.env.Inbox = {}
+    end
   end
 
   env.processes = {}
@@ -58,6 +62,8 @@ function M.clearAllProcesses()
   env.processed = {}
   env.ready = {}
   env.coroutines = {}
+  -- defensive: clear any stray global fallback inbox
+  _G.Inbox = {}
 end
 
 -- Concurrency: Scheduling & Reordering
