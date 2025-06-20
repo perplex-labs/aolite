@@ -26,13 +26,11 @@ describe("process message sending", function()
     })
 
     local res1 = aolite.getLastMsg("user-process-1")
-    log.debug("getLastMsg(user-process-1): ", res1)
     assert.is_not_nil(res1)
     assert.are.equal("Broadcast-Success", res1.Action)
     assert.are.equal("Hello world", res1.Data)
 
     local res2 = aolite.getLastMsg("user-process-2")
-    log.debug("getLastMsg(user-process-2): ", res2)
     assert.is_not_nil(res2)
     assert.are.equal("Broadcast", res2.Action)
     assert.are.equal("Hello world", res2.Data)

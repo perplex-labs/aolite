@@ -62,7 +62,7 @@ local function setFrom(msg)
   return nil
 end
 
-local function ensureStandardMessageFields(msg, sourceId)
+local function ensureStandardMessageFields(env, msg, sourceId)
   msg.From = sourceId or setFrom(msg)
   msg.Owner = msg.Owner or msg.From
   msg.Timestamp = os.time()
@@ -81,6 +81,14 @@ local function ensureStandardMessageFields(msg, sourceId)
     else
       msg["Block-Height"] = 0 -- fallback for tests, TODO: simulate?
     end
+  end
+
+  -- ensure Module field and From-Module tag
+  if not msg.Module then
+    -- Derive the module id from the process that is sending the message
+    local sender = msg.From and env.processes and env.processes[msg.From]
+    msg.Module = sender.ao._module
+    table.insert(msg.Tags, { name = "From-Module", value = msg.Module })
   end
 end
 
@@ -118,7 +126,7 @@ local function addMsgToQueue(env, msg)
 end
 
 function process.send(env, msg, fromId)
-  ensureStandardMessageFields(msg, fromId)
+  ensureStandardMessageFields(env, msg, fromId)
   addMsgToQueue(env, msg)
   appendMsgLog(env, msg)
 end
@@ -138,7 +146,7 @@ function process.deliverOutbox(env, fromId, pushedFor)
   end
 
   for _, spawnMsg in ipairs(outbox.Spawns) do
-    ensureStandardMessageFields(spawnMsg)
+    ensureStandardMessageFields(env, spawnMsg)
     local spawnedProc = process.spawnProcess(env, spawnMsg.Id, spawnMsg.Data, spawnMsg.Tags)
     spawnMsg.Action = "Spawned"
     spawnMsg.Target = spawnMsg.From

@@ -140,14 +140,6 @@ return function(ao, Handlers)
     local origHandle = process.handle
     if type(origHandle) == "function" then
       process.handle = function(msg, _)
-        -- ensure Module field
-        if msg.Module == nil then
-          -- TODO: Fix. This assigns the wrong module to the message
-          msg.Module = assert(ao._module, "ao._module is required")
-          --   table.insert(msg.TagArray, { name = "From-Module", value = msg.Module })
-          --   msg.Tags.Module = msg.Module
-        end
-
         -- Ensure env.Inbox exists and store current message for later queries
         local envRef = _.Process and _ or (_.env or _)
         if envRef then
