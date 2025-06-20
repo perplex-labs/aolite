@@ -3,9 +3,7 @@ local aolite = require("aolite")
 describe("aolite.eval", function()
   before_each(function()
     aolite.clearAllProcesses()
-    aolite.spawnProcess("proc", "return true", {
-      { name = "On-Boot", value = "Data" },
-    })
+    aolite.spawnProcess("proc", "return true", { ["On-Boot"] = "Data" })
   end)
 
   it("evaluates expressions", function()

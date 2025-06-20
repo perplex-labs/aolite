@@ -29,15 +29,11 @@ end)
 describe("ao.send().receive() + Receive()", function()
   before_each(function()
     aolite.clearAllProcesses()
-    aolite.spawnProcess("game-process", PING_PONG_SRC, {
-      { name = "On-Boot", value = "Data" },
-    })
+    aolite.spawnProcess("game-process", PING_PONG_SRC, { ["On-Boot"] = "Data" })
   end)
 
   it("ao.send().receive() receives reply", function()
-    aolite.spawnProcess("player-process", PLAYER_SRC, {
-      { name = "On-Boot", value = "Data" },
-    })
+    aolite.spawnProcess("player-process", PLAYER_SRC, { ["On-Boot"] = "Data" })
 
     aolite.send({
       From = "player-process",
@@ -51,9 +47,7 @@ describe("ao.send().receive() + Receive()", function()
   end)
 
   it("global Receive receives reply", function()
-    aolite.spawnProcess("player-process", PLAYER_GLOBAL_SRC, {
-      { name = "On-Boot", value = "Data" },
-    })
+    aolite.spawnProcess("player-process", PLAYER_GLOBAL_SRC, { ["On-Boot"] = "Data" })
 
     aolite.send({
       From = "player-process",

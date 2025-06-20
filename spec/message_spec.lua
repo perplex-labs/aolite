@@ -11,9 +11,7 @@ end)
 describe("process message sending", function()
   before_each(function()
     aolite.clearAllProcesses()
-    aolite.spawnProcess("chat-process", PROCESS_SRC, {
-      { name = "On-Boot", value = "Data" },
-    })
+    aolite.spawnProcess("chat-process", PROCESS_SRC, { ["On-Boot"] = "Data" })
     aolite.spawnProcess("user-process-1", nil)
     aolite.spawnProcess("user-process-2", nil)
   end)

@@ -10,12 +10,8 @@ describe("process interactions", function()
   before_each(function()
     aolite.clearAllProcesses()
     aolite.setAutoSchedule(true)
-    aolite.spawnProcess("sender", "return true", {
-      { name = "On-Boot", value = "Data" },
-    })
-    aolite.spawnProcess("receiver", PING_SRC, {
-      { name = "On-Boot", value = "Data" },
-    })
+    aolite.spawnProcess("sender", "return true", { ["On-Boot"] = "Data" })
+    aolite.spawnProcess("receiver", PING_SRC, { ["On-Boot"] = "Data" })
   end)
 
   it("sends and receives messages", function()

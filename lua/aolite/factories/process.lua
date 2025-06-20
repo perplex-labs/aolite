@@ -72,8 +72,11 @@ return function(ao, Handlers)
 
   setmetatable(env, { __index = _G })
 
-  -- Execute upstream process code inside this env and return its table
+  -- Execute upstream process code inside this env
   local process = compat_require("aos.process.process", env)
+
+  -- Expose the sandbox so the caller can reuse it
+  process._env = env
 
   -- ------------------------------------------------------------------
   -- Back-compat helpers expected by aolite's public API
@@ -139,17 +142,10 @@ return function(ao, Handlers)
       process.handle = function(msg, _)
         -- ensure Module field
         if msg.Module == nil then
-          -- 1) try root of ao table
-          msg.Module = ao._module or msg.Module
-          -- 2) fallback: look for Module tag and promote
-          if msg.Module == nil and msg.Tags then
-            for _, t in ipairs(msg.Tags) do
-              if t.name == "Module" then
-                msg.Module = t.value
-                break
-              end
-            end
-          end
+          -- TODO: Fix. This assigns the wrong module to the message
+          msg.Module = assert(ao._module, "ao._module is required")
+          --   table.insert(msg.TagArray, { name = "From-Module", value = msg.Module })
+          --   msg.Tags.Module = msg.Module
         end
 
         -- Ensure env.Inbox exists and store current message for later queries

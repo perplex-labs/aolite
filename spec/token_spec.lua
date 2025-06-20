@@ -16,11 +16,11 @@ describe("token blueprint", function()
       aolite.spawnProcess("token-process", "spec.blueprints.token", {
         Ticker = "TT",
         Name = "TestToken",
-        Denomination = "18",
+        Denomination = "8",
       })
       assert.are.equal("TT", aolite.eval("token-process", "return Ticker"))
       assert.are.equal("TestToken", aolite.eval("token-process", "return Name"))
-      assert.are.equal("18", aolite.eval("token-process", "return Denomination"))
+      assert.are.equal("8", aolite.eval("token-process", "return Denomination"))
     end)
   end)
 
@@ -55,6 +55,54 @@ describe("token blueprint", function()
       assert.is_not_nil(res)
       assert.are.equal("token-process", res.From)
       assert.are.equal("0", res.Tags.Balance)
+    end)
+
+    it("mint handler", function()
+      aolite.send({
+        From = "token-process",
+        Target = "token-process",
+        Action = "Balance",
+      })
+      local balanceBefore = aolite.getLastMsg("token-process").Tags.Balance
+
+      local quantity = "100"
+      aolite.send({
+        From = "token-process",
+        Target = "token-process",
+        Action = "Mint",
+        Quantity = quantity,
+      })
+
+      aolite.send({
+        From = "token-process",
+        Target = "token-process",
+        Action = "Balance",
+      })
+      local balanceAfter = aolite.getLastMsg("token-process").Tags.Balance
+
+      assert.are.equal(balanceBefore + quantity, tonumber(balanceAfter))
+    end)
+
+    it("transfer handler", function()
+      local quantity = "500"
+      aolite.send({
+        From = "token-process",
+        Target = "token-process",
+        Action = "Transfer",
+        Recipient = "user-process",
+        Quantity = quantity,
+      })
+
+      local creditNotice = aolite.getLastMsg("user-process")
+      assert.is_not_nil(creditNotice)
+      assert.are.equal("token-process", creditNotice.From)
+      assert.are.equal("token-process", creditNotice.Tags.Sender)
+      assert.are.equal(quantity, creditNotice.Tags.Quantity)
+
+      local debitNotice = aolite.getLastMsg("token-process")
+      assert.is_not_nil(debitNotice)
+      assert.are.equal(quantity, debitNotice.Tags.Quantity)
+      assert.are.equal("user-process", debitNotice.Tags.Recipient)
     end)
   end)
 end)
