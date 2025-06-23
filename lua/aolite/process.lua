@@ -222,9 +222,12 @@ function process.spawnProcess(env, processId, dataOrPath, initEnv)
   -- augment it with runtime-specific fields that the simulator expects
   runtimeEnv.Process = {
     Id = processId,
-    Owner = "fcoN_xJeisVsPXA-trzVAuIiqO3ydLQxM-L4XbrQKzY",
+    Owner = processId,
     Tags = tagList,
   }
+  -- TODO: This is a workaround for the currently missing initial
+  --       spawn message which normally sets the Owner field of a process.
+  runtimeEnv.Owner = processId
 
   -- Promote initEnv tags to globals so blue-print code can access them
   if initEnv then
