@@ -165,9 +165,6 @@ return function(ao, Handlers)
               parent.messageStore[s.Id] = s
             end
           end
-          for _, a in ipairs(ao.outbox.Assignments) do
-            parent.messageStore[a.Message or a.Id or tostring(a)] = a
-          end
         end
 
         -- Duplicate *only self-addressed* outbox messages into the sandbox
