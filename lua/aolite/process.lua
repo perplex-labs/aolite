@@ -108,16 +108,10 @@ local function addMsgToQueue(env, msg)
     env.messageStore[msg.Id] = msg
     table.insert(env.queues[msg.Target], msg.Id)
 
-    if msg.Action ~= "EvalRequest" and msg.Action ~= "EvalResponse" then
+    local action = findTag(msg.Tags, "Action")
+    if action ~= "EvalRequest" and action ~= "EvalResponse" then
       log.debug(
-        "[message]: "
-          .. msg.From
-          .. " -> "
-          .. msg.Target
-          .. " (Action = "
-          .. (findTag(msg.Tags, "Action") or "nil")
-          .. ") "
-          .. msg.Id
+        "[message]: " .. msg.From .. " -> " .. msg.Target .. " (Action = " .. (action or "nil") .. ") " .. msg.Id
       )
     end
   end
