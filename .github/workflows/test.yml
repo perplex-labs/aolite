@@ -11,7 +11,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      luaVersion: "5.4"
+      luaVersion: "5.3"
       luarocksVersion: "3.11.1"
 
     steps:
