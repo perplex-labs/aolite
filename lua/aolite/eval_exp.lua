@@ -4,7 +4,10 @@ local function evaluateExpression(expression, chunkname)
 
   -- Set up the environment for evaluation
   local env = {}
-  setmetatable(env, { __index = _G }) -- Inherit from the process's global environment
+  setmetatable(env, {
+    __index = _G, -- lookups fall back to process globals
+    __newindex = _G, -- writes go straight to process globals
+  })
 
   local func, err = load("return " .. tostring(expression), chunkname, "t", env)
 

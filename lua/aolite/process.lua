@@ -141,7 +141,7 @@ function process.deliverOutbox(env, fromId, pushedFor)
 
   for _, spawnMsg in ipairs(outbox.Spawns) do
     ensureStandardMessageFields(env, spawnMsg)
-    local spawnedProc = process.spawnProcess(env, spawnMsg.Id, spawnMsg.Data, spawnMsg.Tags)
+    local spawnedProc = process.spawnProcess(env, spawnMsg.Id, spawnMsg.Data, spawnMsg.Tags, fromId)
     spawnMsg.Action = "Spawned"
     spawnMsg.Target = spawnMsg.From
     spawnMsg.Process = spawnedProc.env.Process.Id
@@ -170,7 +170,7 @@ function process.deliverOutbox(env, fromId, pushedFor)
   ao.clearOutbox()
 end
 
-function process.spawnProcess(env, processId, dataOrPath, initEnv)
+function process.spawnProcess(env, processId, dataOrPath, initEnv, ownerId)
   assert(processId, "processId must be defined")
 
   -- Normalize `initEnv`.
@@ -222,12 +222,12 @@ function process.spawnProcess(env, processId, dataOrPath, initEnv)
   -- augment it with runtime-specific fields that the simulator expects
   runtimeEnv.Process = {
     Id = processId,
-    Owner = processId,
+    Owner = ownerId or processId,
     Tags = tagList,
   }
   -- TODO: This is a workaround for the currently missing initial
   --       spawn message which normally sets the Owner field of a process.
-  runtimeEnv.Owner = processId
+  runtimeEnv.Owner = ownerId or processId
 
   -- Promote initEnv tags to globals so blue-print code can access them
   if initEnv then
