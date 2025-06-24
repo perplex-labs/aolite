@@ -60,3 +60,68 @@ describe("ao.send().receive() + Receive()", function()
     assert.are.equal("Success-Global", res.Action)
   end)
 end)
+
+describe("ao.spawn().receive()", function()
+  before_each(function()
+    aolite.clearAllProcesses()
+  end)
+
+  it("ao.spawn().receive() receives reply", function()
+    aolite.spawnProcess("process", nil)
+    aolite.eval(
+      "process",
+      [=[
+          local resp = ao.spawn(ao._module, {
+            Tags = {
+              ['Authority'] = ao.authorities[1],
+              ['On-Boot'] = 'Data',
+            },
+            Data = [[
+              MY_STATE = true
+            ]]
+          }).receive()
+          CHILD_PROCESS_ID = resp.Process
+        ]=]
+    )
+
+    local childProcessId = aolite.eval("process", "return CHILD_PROCESS_ID")
+    assert.is_not_nil(childProcessId)
+
+    local state = aolite.eval(childProcessId, "return MY_STATE")
+    assert.is_true(state)
+  end)
+
+  it("ao.spawn().receive() + ao.send().receive() on spawned process", function()
+    aolite.spawnProcess("process", nil)
+    aolite.eval(
+      "process",
+      [=[
+        local spawnRes = ao.spawn(ao._module, {
+          Tags = {
+            ['Authority'] = ao.authorities[1],
+            ['On-Boot'] = 'Data',
+          },
+          Data = [[
+            Handlers.add("PingHandler", "Ping", function(msg)
+              msg.reply({ Action = "Pong", Data = msg.Data })
+            end)
+          ]]
+        }).receive()
+        CHILD_PROCESS_ID = spawnRes.Process
+        local sendRes = ao.send({
+          From = Owner,
+          Target = CHILD_PROCESS_ID,
+          Action = "Ping",
+          Data = ao.id
+        }).receive()
+        SUCCESS = assert(sendRes.Action == "Pong", "Expected Pong, got " .. sendRes.Action)
+      ]=]
+    )
+
+    local childProcessId = aolite.eval("process", "return CHILD_PROCESS_ID")
+    assert.is_not_nil(childProcessId)
+
+    local success = aolite.eval("process", "return SUCCESS")
+    assert.is_true(success)
+  end)
+end)
