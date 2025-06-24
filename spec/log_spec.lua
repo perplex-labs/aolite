@@ -1,5 +1,5 @@
 local aolite = require("aolite")
-local json = require("aolite.lib.json")
+local json = require("json")
 
 local LOG_PATH = "spec/tmp_messages.log"
 
