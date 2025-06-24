@@ -1,3 +1,4 @@
+require("aolite")
 local utils = require(".utils")
 
 describe("utils", function()
