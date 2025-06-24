@@ -8,7 +8,7 @@
 
 AOLite embeds the **AO runtime** inside a single Lua VM so tests or back-tests can create many processes, queue messages, reorder queues, and drive a deterministic coroutine-based scheduler — **all without Arweave / Bundlr or a real network**.
 
-Refer to the root `AGENTS.md` for repository structure.  The lower level utility modules are documented in `lua/aolite/lib/AGENTS.md` while the embedded runtime is described in `lua/aolite/ao/AGENTS.md`.
+Refer to the root `AGENTS.md` for repository structure.  The lower-level utility modules are documented in `lua/aolite/lib/AGENTS.md` while the **up-stream AO runtime** now lives in the `lua/aos/process/` sub-module (see that project's own docs).
 
 ---
 
@@ -35,7 +35,7 @@ Refer to the root `AGENTS.md` for repository structure.  The lower level utility
 | **`api.eval(env,pid,expr)`**                     | `api.lua`             | Injects `EvalRequest`; waits for `EvalResponse`; JSON-deserialises result.                                                                                     |
 | **`scheduler.run(env,maxCycles)`**               | `scheduler.lua`       | Round-robin resumes coroutines whose PIDs are in `env.ready`, up to `maxCycles`.                                                                               |
 | **`main.*` exported helpers**                    | `main.lua`            | Thin wrappers around API + scheduler for tests (`spawnProcess`, `send`, `getLastMsg`, etc.)                                                                    |
-| **`compat.lua`** (`require` hijack)              | replaces `_G.require` | Maps friendly aliases (`ao`, `.bint`, `.crypto.*`) to concrete paths; allows second arg `processEnv` to load chunk into process sandbox.                       |
+| **`compat.lua`** (`require` hijack)              | replaces `_G.require` | Maps friendly aliases (`ao`, `.bint`, `.crypto.*`, etc.) to upstream modules under `aos.process.*`; allows second arg `processEnv` to load chunk into the process sandbox.                       |
 | **`eval_exp.eval(expr)`**                        | safe eval             | Compiles/pcalls expression inside isolated env; returns `(success,resultOrErr)`.                                                                               |
 | **`eval.lua` Handlers**                          | adds to every process | `_eval` (interactive REPL) & `EvalRequestHandler` (JSON-serialize return value).                                                                               |
 
@@ -43,14 +43,14 @@ Refer to the root `AGENTS.md` for repository structure.  The lower level utility
 
 ### Relationships / Data Flow
 
-* **`main.lua` ➜ API ➜ process ➜ ao runtime**
-  `main.spawnProcess` ⇒ `process.spawnProcess` ⇒ `createAO`, `createHandlers`, `createProcess` (from *ao* dir).
+* **`main.lua` ➜ API ➜ process ➜ upstream AO runtime**
+  `main.spawnProcess` ⇒ `process.spawnProcess` ⇒ `factories.createAO`, `factories.createHandlers`, `factories.createProcess` (wrappers around `aos.process.*`).
   Messages sent via `main.send` → `api.send` → `process.send` → target queue.
 
 * **Scheduler** drives coroutines; each resume:
 
   1. flush sender outbox (`deliverOutbox`)
-  2. pop one queued msg; call `processModule.handle` (AO runtime, described in `AGENTS.md` for `ao/`).
+  2. pop one queued msg; call `processModule.handle` (upstream AO runtime).
 
 * **Eval pipeline**: `api.eval` 🡒 `EvalRequest` → process handler in `eval.lua` 🡒 run expression via `eval_exp` 🡒 reply `EvalResponse` JSON.
 
@@ -75,13 +75,16 @@ Refer to the root `AGENTS.md` for repository structure.  The lower level utility
 | File                | Primary APIs / Logic                                                                                            |
 | ------------------- | --------------------------------------------------------------------------------------------------------------- |
 | **`api.lua`**       | send wrapper, eval helper, message fetch helpers.                                                               |
-| **`compat.lua`**    | Global `require` shim & module aliasing (e.g., `"ao"` → `aolite.ao.ao`).                                        |
+| **`compat.lua`**    | Global `require` shim & module aliasing to upstream (`"ao"` → `aos.process.ao`).                                  |
 | **`env.lua`**       | `LocalAOEnv.new()` creates shared simulation state containers.                                                  |
 | **`eval_exp.lua`**  | Pure expression evaluator used by handlers.                                                                     |
 | **`eval.lua`**      | Registers `_eval` + `EvalRequest` handlers into every process; serializes results via `lib.serialize`.          |
 | **`process.lua`**   | Heavy-weight orchestration: spawnProcess, send/deliverOutbox, per-process coroutine loop, message logging.      |
 | **`scheduler.lua`** | Simple cooperative scheduler that runs ready coroutines until queues drain or `maxCycles` exceeded.             |
 | **`main.lua`**      | Public façade imported by examples/tests; exposes spawn/send/query/scheduler controls; manages singleton `env`. |
+| **`factories/ao.lua`**   | Builds a sandboxed copy of upstream `aos.process.ao` for each process.                                           |
+| **`factories/handlers.lua`** | Same pattern for `aos.process.handlers`, giving each process isolated handler set.                         |
+| **`factories/process.lua`**  | Thin wrapper that initialises `aos.process.process` with local env + sandbox.                               |
 
 ---
 
@@ -93,7 +96,7 @@ Refer to the root `AGENTS.md` for repository structure.  The lower level utility
 * **Queues** store **message IDs only**; real message bodies live in `env.messageStore` allowing aliasing by assignment.
 * **In-process `require(module, processEnv)`** (second arg) triggers sandboxed chunk load to keep globals isolated.
 
-The documentation above enables another LLM to reconstruct the full in-memory simulation pipeline, implement additional utilities, or generate tests that leverage AOLite’s local AO environment.
+The documentation above enables another LLM to reconstruct the full in-memory simulation pipeline, implement additional utilities, or generate tests that leverage AOLite's local AO environment.
 
 ### Testing
 
