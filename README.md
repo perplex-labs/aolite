@@ -15,6 +15,10 @@ A local, concurrent emulation of the Arweave AO protocol for testing Lua process
 - **Scheduler Control:** Supports both automatic and manual scheduling of process message queues.
 - **Controlled Logging:** Supports logging at different levels of verbosity.
 
+## Requirements
+
+* **Lua 5.3** – The default AOS module relies on features introduced in Lua 5.3 (e.g. `bit32`, integer division, 64-bit integers).  Lua 5.4 and LuaJIT *may* work but are not officially supported.
+
 ## Installation
 
 You can install `aolite` using Luarocks:
@@ -23,10 +27,12 @@ You can install `aolite` using Luarocks:
 luarocks install aolite
 ```
 
-or build it from inside this repository directly:
+or build it from inside this repository directly.  After cloning make sure the
+upstream runtime sub-module is checked out to the commit pinned in this repo:
 
 ```bash
-luarocks make
+git submodule update --init --recursive  # one-time after clone
+luarocks make                            # build & install locally
 ```
 
 ## Quick Start
@@ -279,9 +285,23 @@ aolite.clearAllProcesses()
 
 ## Development
 
-There are no dependencies, simply modify the `lua/aolite` directory and run `luarocks make` to build the package. Luarocks will automatically install the package to your local lua path.
+The code in `lua/aolite` has **no external Lua dependencies**, however it
+*does* rely on the upstream AO implementation vendored as a Git sub-module
+in `lua/aos`.  When working on the codebase remember to keep that sub-module
+in sync (at the pinned commit):
 
-For running the test suite, this project uses [busted](https://lunarmodules.github.io/busted/). After installing it with `luarocks install busted`, simply run `make test`.
-All pull requests are automatically tested using GitHub Actions.
+```bash
+git submodule update --init --recursive
+```
+
+Updating the sub-module to a newer upstream revision is optional and **may
+introduce breaking changes** – proceed only if you need features that are not
+yet included here.
+
+Afterwards you can rebuild the rock:
+
+```bash
+luarocks make
+```
 
 Contributions are welcome! Feel free to open an issue or pull request.
