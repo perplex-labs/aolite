@@ -41,7 +41,8 @@ describe("token blueprint", function()
       assert.is_not_nil(res)
       assert.are.equal("token-process", res.From)
       assert.are.equal("PNTS", res.Tags.Ticker)
-      assert.are.equal("Points Coin", res.Tags.Name)
+      -- Name is always initialized by the default aos module
+      assert.are.equal("token-process", res.Tags.Name)
       assert.are.equal("12", res.Tags.Denomination)
     end)
 
