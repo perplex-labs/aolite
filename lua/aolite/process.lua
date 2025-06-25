@@ -226,8 +226,9 @@ function process.spawnProcess(env, processId, dataOrPath, initEnv, ownerId)
     Tags = tagList,
   }
   -- TODO: This is a workaround for the currently missing initial
-  --       spawn message which normally sets the Owner field of a process.
+  --       spawn message which normally sets the Owner and Name fields of a process.
   runtimeEnv.Owner = ownerId or processId
+  runtimeEnv.Name = processId
 
   -- Promote initEnv tags to globals so blue-print code can access them
   if initEnv then
