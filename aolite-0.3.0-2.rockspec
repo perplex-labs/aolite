@@ -1,3 +1,4 @@
+rockspec_format = "3.0"
 package = "aolite"
 version = "0.3.0-2"
 source = {
