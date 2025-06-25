@@ -1,10 +1,10 @@
 local process = {}
 
-local log = require("aolite.lib.log")
-local json = require("aolite.lib.json")
-local createAO = require("aolite.ao.ao")
-local createHandlers = require("aolite.ao.handlers")
-local createProcess = require("aolite.ao.process")
+local log = require(".log")
+local json = require(".json")
+local createAO = require("aolite.factories.ao")
+local createHandlers = require("aolite.factories.handlers")
+local createProcess = require("aolite.factories.process")
 
 local initialEnv = {} -- your old `initialEnv`, if you still need it
 setmetatable(initialEnv, { __index = _G })
@@ -28,8 +28,10 @@ local function appendMsgLog(env, msg)
   file:close()
 end
 
--- Build a new process ID from tags or fallback
 local function findTag(tags, tname)
+  if not tags then
+    return nil
+  end
   if tags then
     for _, t in ipairs(tags) do
       if t.name == tname then
@@ -60,7 +62,7 @@ local function setFrom(msg)
   return nil
 end
 
-local function ensureStandardMessageFields(msg, sourceId)
+local function ensureStandardMessageFields(env, msg, sourceId)
   msg.From = sourceId or setFrom(msg)
   msg.Owner = msg.Owner or msg.From
   msg.Timestamp = os.time()
@@ -71,6 +73,23 @@ local function ensureStandardMessageFields(msg, sourceId)
   assert(_reference, "aolite: Reference tag is missing")
 
   msg.Id = msg.From .. ":" .. _reference.value
+
+  if msg["Block-Height"] == nil then
+    local _bhTag = findObject(msg.Tags, "name", "Block-Height")
+    if _bhTag then
+      msg["Block-Height"] = tonumber(_bhTag.value) or _bhTag.value
+    else
+      msg["Block-Height"] = 0 -- fallback for tests, TODO: simulate?
+    end
+  end
+
+  -- ensure Module field and From-Module tag
+  if not msg.Module then
+    -- Derive the module id from the process that is sending the message
+    local sender = msg.From and env.processes and env.processes[msg.From]
+    msg.Module = sender.ao._module
+    table.insert(msg.Tags, { name = "From-Module", value = msg.Module })
+  end
 end
 
 local function addMsgToQueue(env, msg)
@@ -88,13 +107,20 @@ local function addMsgToQueue(env, msg)
     -- log.debug("AddMsgToQueue of " .. msg.Target .. ":", msg)
     env.messageStore[msg.Id] = msg
     table.insert(env.queues[msg.Target], msg.Id)
+
+    local action = findTag(msg.Tags, "Action")
+    if action ~= "EvalRequest" and action ~= "EvalResponse" then
+      log.debug(
+        "[message]: " .. msg.From .. " -> " .. msg.Target .. " (Action = " .. (action or "nil") .. ") " .. msg.Id
+      )
+    end
   end
 
   env.ready[msg.Target] = true
 end
 
 function process.send(env, msg, fromId)
-  ensureStandardMessageFields(msg, fromId)
+  ensureStandardMessageFields(env, msg, fromId)
   addMsgToQueue(env, msg)
   appendMsgLog(env, msg)
 end
@@ -114,8 +140,8 @@ function process.deliverOutbox(env, fromId, pushedFor)
   end
 
   for _, spawnMsg in ipairs(outbox.Spawns) do
-    ensureStandardMessageFields(spawnMsg)
-    local spawnedProc = process.spawnProcess(env, spawnMsg.Id, spawnMsg.Data, spawnMsg.Tags)
+    ensureStandardMessageFields(env, spawnMsg)
+    local spawnedProc = process.spawnProcess(env, spawnMsg.Id, spawnMsg.Data, spawnMsg.Tags, fromId)
     spawnMsg.Action = "Spawned"
     spawnMsg.Target = spawnMsg.From
     spawnMsg.Process = spawnedProc.env.Process.Id
@@ -144,16 +170,41 @@ function process.deliverOutbox(env, fromId, pushedFor)
   ao.clearOutbox()
 end
 
-function process.spawnProcess(env, originalId, dataOrPath, initEnv)
-  assert(originalId, "parentId must be defined")
-  if env.processes[originalId] then
-    error("aolite: Process with ID " .. originalId .. " already exists")
-  end
-  log.debug("> LOG: Spawning process with ID: " .. originalId)
+function process.spawnProcess(env, processId, dataOrPath, initEnv, ownerId)
+  assert(processId, "processId must be defined")
 
-  -- local refVal = findTag(tags, "Reference")
-  local processId = originalId
-  local moduleId = findTag(initEnv, "Module") or "DefaultDummyModule"
+  -- Normalize `initEnv`.
+  -- It can be:
+  --   1. A map:  { key = value, ... }
+  --   2. An array: { { name = key, value = value }, ... }
+  local tagMap, tagList = {}, {}
+
+  if initEnv ~= nil then
+    assert(type(initEnv) == "table", "`initEnv` must be a table")
+
+    local isArray = initEnv[1] ~= nil and type(initEnv[1]) == "table" and initEnv[1].name ~= nil
+
+    if isArray then
+      for _, tag in ipairs(initEnv) do
+        assert(type(tag.name) == "string", "Each tag item needs a string `name` field")
+        tagMap[tag.name] = tag.value
+        table.insert(tagList, { name = tag.name, value = tag.value })
+      end
+    else
+      for key, value in pairs(initEnv) do
+        assert(type(key) == "string", "`initEnv` map keys must be strings")
+        tagMap[key] = value
+        table.insert(tagList, { name = key, value = value })
+      end
+    end
+  end
+
+  if env.processes[processId] then
+    error("aolite: Process with ID " .. processId .. " already exists")
+  end
+  log.debug("> LOG: Spawning process with ID: " .. processId)
+
+  local moduleId = tagMap.Module or "DefaultDummyModule"
 
   -- Create new Handlers & AO
   log.debug("> LOG: Creating handlers for: " .. processId .. " with module: " .. moduleId)
@@ -165,84 +216,45 @@ function process.spawnProcess(env, originalId, dataOrPath, initEnv)
   ao.id = processId
   ao._module = moduleId
 
-  local processEnv = {
-    Process = {
-      Id = processId,
-      Owner = "fcoN_xJeisVsPXA-trzVAuIiqO3ydLQxM-L4XbrQKzY",
-      Tags = initEnv or {},
-    },
-    Handlers = handlers,
-    ao = ao,
-    Module = { Id = moduleId },
-    -- plus any other environment fields
-  }
-  setmetatable(processEnv, { __index = initialEnv })
+  -- AFTER you obtained processModule from createProcess(...)
+  local runtimeEnv = assert(processModule._env, "process sandbox missing")
 
-  -- Promote initEnv to globals
+  -- augment it with runtime-specific fields that the simulator expects
+  runtimeEnv.Process = {
+    Id = processId,
+    Owner = ownerId or processId,
+    Tags = tagList,
+  }
+  -- TODO: This is a workaround for the currently missing initial
+  --       spawn message which normally sets the Owner and Name fields of a process.
+  runtimeEnv.Owner = ownerId or processId
+  runtimeEnv.Name = processId
+
+  -- Promote initEnv tags to globals so blue-print code can access them
   if initEnv then
-    for k, v in pairs(initEnv) do
-      processEnv[k] = v
-    end
-  end
-  processEnv._G = processEnv
-  processEnv._ENV = processEnv
-
-  -- Inject relevant variable into processEnv
-  processEnv.Receive = processModule.Receive
-
-  -- Create a local package table in processEnv
-  processEnv.package = {
-    loaded = {
-      ["ao"] = ao,
-      ["Handlers"] = handlers,
-      ["process"] = processModule,
-      -- Preload any other modules as needed
-    },
-    searchers = package.searchers,
-    path = package.path,
-    cpath = package.cpath,
-    config = package.config,
-  }
-
-  processEnv.require = function(moduleName)
-    local loaded = processEnv.package.loaded
-    if loaded[moduleName] then
-      return loaded[moduleName]
-    end
-
-    local success, result = pcall(require, moduleName, processEnv)
-    local firstError
-    if success then
-      loaded[moduleName] = result
-      return result
-    else
-      -- If this attempt fails, 'result' should hold an error message
-      firstError = result
-    end
-
-    local success2, result2 = pcall(require, moduleName)
-    if success2 then
-      loaded[moduleName] = result2
-      return loaded[moduleName]
-    else
-      -- Print both errors for better visibility
-      log.warn(
-        "aolite: Failed to load module: "
-        .. moduleName
-        .. "\nFirst attempt error: "
-        .. tostring(firstError)
-        .. "\nSecond attempt error: "
-        .. tostring(result2)
-      )
+    for key, value in pairs(tagMap) do
+      runtimeEnv[key] = value
     end
   end
 
-  -- Save the process instance
+  runtimeEnv.Inbox = {} -- isolated inbox
+  runtimeEnv._parent = env -- pointer to aolite host
+  runtimeEnv.Receive = function(match) -- helper, as before
+    return handlers.receive(match)
+  end
+
+  -- if the upstream code put its own Receive, keep that
+  if type(processModule.Receive) == "function" then
+    runtimeEnv.Receive = processModule.Receive
+  end
+
+  -- From here on, treat 'runtimeEnv' as the authoritative sandbox
+  ao.env = runtimeEnv
   env.processes[processId] = {
     process = processModule,
     ao = ao,
     Handlers = handlers,
-    env = processEnv,
+    env = runtimeEnv, --  <──  store the *same* table
   }
 
   -- Create inbound queue if not exist
@@ -266,7 +278,7 @@ function process.spawnProcess(env, originalId, dataOrPath, initEnv)
         if not ao.isAssignment(msg) and env.processed[msg.Id] then
           error("aolite: Message already processed: " .. msg.Id)
         end
-        processModule.handle(msg, processEnv)
+        processModule.handle(msg, runtimeEnv)
         env.processed[msg.Id] = true
       end
     end
@@ -275,19 +287,22 @@ function process.spawnProcess(env, originalId, dataOrPath, initEnv)
   env.coroutines[processId] = coroutine.create(processLoop)
 
   -- Load and execute the process script in the processEnv
-  local onBoot = findTag(initEnv, "On-Boot") or dataOrPath
+  local onBoot = initEnv and tagMap["On-Boot"] or dataOrPath
   if onBoot then
     if onBoot == "Data" then
-      local chunk, err = load(dataOrPath, "onboot", "bt", processEnv)
+      local chunk, err = load(dataOrPath, "onboot", "bt", runtimeEnv)
       if not chunk then
         error(err)
       end
       chunk()
     elseif onBoot ~= "NODATA" then
-      processEnv.require(onBoot)
+      runtimeEnv.require(onBoot)
     end
   end
-  processEnv.require("aolite.eval")
+  runtimeEnv.require("aolite.eval")
+
+  -- Ensure AO table knows its environment before any messages arrive
+  ao.env = runtimeEnv
 
   return env.processes[processId]
 end

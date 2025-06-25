@@ -15,7 +15,7 @@ description = {
    license = "MIT"
 }
 dependencies = {
-   "lua >= 5.1"
+   "lua == 5.3"
 }
 build = {
    type = "builtin",
@@ -28,19 +28,8 @@ build = {
       ["aolite.scheduler"] = "lua/aolite/scheduler.lua",
       ["aolite.compat"] = "lua/aolite/compat.lua",
 
-      ["aolite.ao.ao"] = "lua/aolite/ao/ao.lua",
-      ["aolite.ao.assignment"] = "lua/aolite/ao/assignment.lua",
-      ["aolite.ao.boot"] = "lua/aolite/ao/boot.lua",
-      ["aolite.ao.default"] = "lua/aolite/ao/default.lua",
-      ["aolite.ao.handlers"] = "lua/aolite/ao/handlers.lua",
-      ["aolite.ao.handlers-utils"] = "lua/aolite/ao/handlers-utils.lua",
-      ["aolite.ao.process"] = "lua/aolite/ao/process.lua",
-
-      ["aolite.lib.bint"] = "lua/aolite/lib/bint.lua",
       ["aolite.lib.json"] = "lua/aolite/lib/json.lua",
       ["aolite.lib.log"] = "lua/aolite/lib/log.lua",
       ["aolite.lib.serialize"] = "lua/aolite/lib/serialize.lua",
-      ["aolite.lib.utils"] = "lua/aolite/lib/utils.lua",
-      ["aolite.lib.crypto"] = "lua/aolite/lib/crypto/init.lua"
    }
 }

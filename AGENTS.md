@@ -6,15 +6,15 @@
 
 ### Overview
 
-This repository contains the AOLite local AO simulation toolkit. The Lua modules live under `lua/aolite`, example scripts under `examples`, and Busted tests under `spec`. AGENTS files exist at `lua/aolite/`, `lua/aolite/lib/`, and `lua/aolite/ao/` describing those parts in detail.
+This repository contains the AOLite local AO simulation toolkit. The Lua-facing entry modules live under `lua/aolite` while the **up-stream AO runtime** and its support libraries are vendored as a Git sub-module in `lua/aos`. Example scripts sit in `examples` and Busted tests in `spec`. AGENTS files exist at `lua/aolite/` and `lua/aolite/lib/`, describing those parts in detail. (The upstream project ships its own documentation inside `lua/aos/`.)
 
 ### File Summaries
 
 | Path            | Purpose                                                  |
 | --------------- | -------------------------------------------------------- |
-| `lua/aolite`    | Main entry modules, scheduler and API wrappers.         |
-| `lua/aolite/lib`| Utility libraries used everywhere.                      |
-| `lua/aolite/ao` | Embedded AO runtime executed inside each process.       |
+| `lua/aolite`    | Main entry modules, lightweight scheduler, factories and public API wrappers. |
+| `lua/aos`       | Git sub-module: authoritative AO process runtime & shared libraries. |
+| `lua/aolite/lib`| Local utility helpers (logging, JSON, serialization).  |
 | `examples`      | Standalone scripts demonstrating AOLite usage.          |
 | `spec`          | Unit tests using Busted.                                |
 
@@ -29,7 +29,7 @@ make test
 
 ### Relationships
 
-The high level modules in `lua/aolite` depend on helpers in `lua/aolite/lib` and on the runtime in `lua/aolite/ao`. Example scripts and tests import the top level module defined in `lua/aolite/main.lua`.
+The high-level modules in `lua/aolite` depend on helpers in `lua/aolite/lib` **and** on the upstream runtime found in `lua/aos/process`. The `aolite.factories.*` adapters create isolated sand-boxed copies of upstream modules (Handlers, AO, Process) for every simulated process. Example scripts and tests simply `require("aolite")` (maps to `lua/aolite/main.lua`).
 
 ### Contribution & Style
 

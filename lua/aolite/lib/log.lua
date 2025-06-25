@@ -13,14 +13,12 @@ local function bintToDecimalStr(number, precision)
   local integerPart = number // factor
   local fractionalPart = number % factor
 
-
   if integerPart == bint.zero() and fractionalPart == bint.zero() then
     isNegative = false
   end
 
   local integerStr = tostring(integerPart)
   local fractionalStr = tostring(fractionalPart)
-
 
   if precision > 0 then
     fractionalStr = string.rep("0", precision - #fractionalStr) .. fractionalStr

@@ -8,9 +8,7 @@ describe("bint integration", function()
       local bint = require(".bint")(256)
       GlobalBint = bint(10)
     ]]
-    aolite.spawnProcess("proc", src, {
-      { name = "On-Boot", value = "Data" },
-    })
+    aolite.spawnProcess("proc", src, { ["On-Boot"] = "Data" })
   end)
 
   it("serializes and reconstructs bints from eval", function()

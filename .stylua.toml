@@ -1,0 +1,22 @@
+# Indentation type (Spaces or Tabs)
+indent_type = "Spaces"
+
+# Indentation width (e.g., 2 or 4)
+indent_width = 2
+
+# Maximum line length
+column_width = 120
+
+# How to handle quotes:
+# - "AutoPreferSingle": prefer single quotes unless double is necessary
+# - "AutoPreferDouble": prefer double quotes unless single is necessary
+# - "ForceSingle": always use single quotes
+# - "ForceDouble": always use double quotes
+quote_style = "AutoPreferDouble"
+
+# Whether to add parentheses around function calls with a single argument
+# - "Always": always keep parentheses even if the function has a single argument
+call_parentheses = "Always"
+
+# Control line endings (Unix, Windows, Auto)
+line_endings = "Unix"

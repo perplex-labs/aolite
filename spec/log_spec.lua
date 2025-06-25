@@ -1,5 +1,5 @@
 local aolite = require("aolite")
-local json = require("aolite.lib.json")
+local json = require("json")
 
 local LOG_PATH = "spec/tmp_messages.log"
 
@@ -14,9 +14,7 @@ describe("message logging", function()
     os.remove(LOG_PATH)
     aolite.clearAllProcesses()
     aolite.setMessageLog(LOG_PATH)
-    aolite.spawnProcess("logger", PING_SRC, {
-      { name = "On-Boot", value = "Data" },
-    })
+    aolite.spawnProcess("logger", PING_SRC, { ["On-Boot"] = "Data" })
   end)
 
   after_each(function()
