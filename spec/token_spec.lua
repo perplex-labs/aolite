@@ -7,13 +7,13 @@ describe("token blueprint", function()
     end)
 
     it("can be spawned with no tags", function()
-      aolite.spawnProcess("token-process", "spec.blueprints.token")
+      aolite.spawnProcess("token-process", "lua.aos.blueprints.token")
       local res = aolite.eval("token-process", "return Ticker")
       assert.is_not_nil(res)
     end)
 
     it("can be spawned with tags", function()
-      aolite.spawnProcess("token-process", "spec.blueprints.token", {
+      aolite.spawnProcess("token-process", "lua.aos.blueprints.token", {
         Ticker = "TT",
         Name = "TestToken",
         Denomination = "8",
@@ -27,7 +27,7 @@ describe("token blueprint", function()
   describe("token handlers", function()
     before_each(function()
       aolite.clearAllProcesses()
-      aolite.spawnProcess("token-process", "spec.blueprints.token")
+      aolite.spawnProcess("token-process", "lua.aos.blueprints.token")
       aolite.spawnProcess("user-process", nil)
     end)
 
