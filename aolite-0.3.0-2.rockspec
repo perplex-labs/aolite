@@ -32,19 +32,19 @@ build = {
       ["aolite.lib.log"] = "lua/aolite/lib/log.lua",
       ["aolite.lib.serialize"] = "lua/aolite/lib/serialize.lua",
       
-      ["aos.process.boot"] = "lua/aos/process/boot.lua"
-      ["aos.process.default"] = "lua/aos/process/default.lua"
-      ["aos.process.assignment"] = "lua/aos/process/assignment.lua"
-      ["aos.process.eval"] = "lua/aos/process/eval.lua"
-      ["aos.process.handlers-utils"] = "lua/aos/process/handlers.lua"
-      ["aos.process.handlers"] = "lua/aos/process/handlers.lua"
-      ["aos.process.base64"] = "lua/aos/process/base64.lua"
-      ["aos.process.chance"] = "lua/aos/process/chance.lua"
-      ["aos.process.pretty"] = "lua/aos/process/pretty.lua"
-      ["aos.process.dump"] = "lua/aos/process/dump.lua"
-      ["aos.process.stringify"] = "lua/aos/process/stringify.lua"
-      ["aos.process.apm"] = "lua/aos/process/apm.lua"
-      ["aos.process.bint"] = "lua/aos/process/bint.lua"
-      ["aos.process.utils"] = "lua/aos/process/utils.lua"
+      ["aos.process.boot"] = "lua/aos/process/boot.lua",
+      ["aos.process.default"] = "lua/aos/process/default.lua",
+      ["aos.process.assignment"] = "lua/aos/process/assignment.lua",
+      ["aos.process.eval"] = "lua/aos/process/eval.lua",
+      ["aos.process.handlers-utils"] = "lua/aos/process/handlers.lua",
+      ["aos.process.handlers"] = "lua/aos/process/handlers.lua",
+      ["aos.process.base64"] = "lua/aos/process/base64.lua",
+      ["aos.process.chance"] = "lua/aos/process/chance.lua",
+      ["aos.process.pretty"] = "lua/aos/process/pretty.lua",
+      ["aos.process.dump"] = "lua/aos/process/dump.lua",
+      ["aos.process.stringify"] = "lua/aos/process/stringify.lua",
+      ["aos.process.apm"] = "lua/aos/process/apm.lua",
+      ["aos.process.bint"] = "lua/aos/process/bint.lua",
+      ["aos.process.utils"] = "lua/aos/process/utils.lua",
    },
 }
