@@ -80,7 +80,7 @@ local function ensureStandardMessageFields(env, msg, sourceId)
   local _reference = findObject(msg.Tags, "name", "Reference")
   assert(_reference, "aolite: Reference tag is missing")
 
-  msg.Id = msg.From .. ":" .. _reference.value
+  msg.Id = msg.From .. "#" .. _reference.value
 
   if msg["Block-Height"] == nil then
     local _bhTag = findObject(msg.Tags, "name", "Block-Height")
@@ -143,6 +143,14 @@ function process.send(env, msg, fromId)
   appendMsgLog(env, msg)
 end
 
+-- Helper allocating the next child-process id for a given parent process
+local function nextChildProcessId(env, parentId)
+  local parent = env.processes[parentId]
+  assert(parent, "aolite: Parent process not found: " .. tostring(parentId))
+  parent.spawnCounter = (parent.spawnCounter or 0) + 1
+  return parentId .. ":" .. tostring(parent.spawnCounter)
+end
+
 -- A helper to move outbox items to the correct inbound queues
 function process.deliverOutbox(env, fromId, pushedFor)
   local proc = env.processes[fromId]
@@ -159,7 +167,13 @@ function process.deliverOutbox(env, fromId, pushedFor)
 
   for _, spawnMsg in ipairs(outbox.Spawns) do
     ensureStandardMessageFields(env, spawnMsg)
-    local spawnedProc = process.spawnProcess(env, spawnMsg.Id, spawnMsg.Data, spawnMsg.Tags, fromId)
+
+    -- Allocate a hierarchical id for the new child using the parent-specific
+    -- spawn counter (separate from the parent's message reference counter)
+    local childProcessId = nextChildProcessId(env, fromId)
+
+    local spawnedProc = process.spawnProcess(env, childProcessId, spawnMsg.Data, spawnMsg.Tags, fromId)
+
     spawnMsg.Action = "Spawned"
     spawnMsg.Target = spawnMsg.From
     spawnMsg.Process = spawnedProc.env.Process.Id
@@ -279,6 +293,8 @@ function process.spawnProcess(env, processId, dataOrPath, initEnv, ownerId)
     ao = ao,
     Handlers = handlers,
     env = runtimeEnv, --  <──  store the *same* table
+    -- initialise dedicated spawn counter for this process
+    spawnCounter = 0,
   }
 
   -- Create inbound queue if not exist
