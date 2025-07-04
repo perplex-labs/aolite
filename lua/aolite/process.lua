@@ -26,6 +26,16 @@ local function appendMsgLog(env, msg)
   file:close()
 end
 
+local function flushProcessOutput(env, processId, runtimeEnv)
+  if not env.printProcessOutput then
+    return
+  end
+  local out = runtimeEnv.ao and runtimeEnv.ao.outbox and runtimeEnv.ao.outbox.Output
+  if out and out.data and out.data ~= "" then
+    log.debug("[" .. processId .. "] " .. tostring(out.data))
+  end
+end
+
 local function findTag(tags, tname)
   if not tags then
     return nil
@@ -300,14 +310,7 @@ function process.spawnProcess(env, processId, dataOrPath, initEnv, ownerId)
           runtimeEnv.Process.Tags = arr
         end
         processModule.handle(msg, runtimeEnv)
-        -- Print any printed output to real stdout if the feature is enabled
-        if env.printProcessOutput then
-          local out = runtimeEnv.ao and runtimeEnv.ao.outbox and runtimeEnv.ao.outbox.Output
-          if out and out.data and out.data ~= "" then
-            -- Prefix with process id for clarity
-            log.debug("[" .. processId .. "] " .. tostring(out.data))
-          end
-        end
+        flushProcessOutput(env, processId, runtimeEnv)
         env.processed[msg.Id] = true
       end
     end
@@ -331,12 +334,7 @@ function process.spawnProcess(env, processId, dataOrPath, initEnv, ownerId)
   runtimeEnv.require("aolite.eval")
 
   -- Print any on-boot prints if printProcessOutput is enabled
-  if env.printProcessOutput then
-    local out = ao.outbox and ao.outbox.Output
-    if out and out.data and out.data ~= "" then
-      log.debug("[" .. processId .. "] " .. tostring(out.data))
-    end
-  end
+  flushProcessOutput(env, processId, runtimeEnv)
 
   -- Ensure AO table knows its environment before any messages arrive
   ao.env = runtimeEnv
