@@ -203,6 +203,7 @@ function process.spawnProcess(env, processId, dataOrPath, initEnv, ownerId)
     error("aolite: Process with ID " .. processId .. " already exists")
   end
   local moduleId = tagMap.Module or "DefaultDummyModule"
+  log.debug("> LOG: Spawning process id:" .. processId .. " & module:" .. moduleId)
 
   local processModule = createProcess(processId, moduleId)
 
