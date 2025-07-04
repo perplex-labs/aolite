@@ -1,7 +1,9 @@
 local compat_require = require -- dualRequire from aolite.compat
 
 -- Build a fresh upstream AO instance executed inside a per-process sandbox
-return function(Handlers)
+return function(processId, moduleId, Handlers)
+  assert(type(processId) == "string", "processId must be a string")
+  assert(type(moduleId) == "string", "moduleId must be a string")
   assert(type(Handlers) == "table", "Handlers table expected")
 
   ---------------------------------------------------------------------------
@@ -65,6 +67,10 @@ return function(Handlers)
   ---------------------------------------------------------------------------
   local assignment = env.require(".assignment")
   assignment.init(ao)
+
+  ao.authorities = { "DummyAuthority" } -- TODO: improve
+  ao.id = processId
+  ao._module = moduleId
 
   return ao
 end

@@ -2,22 +2,16 @@
 -- It executes the upstream implementation inside a fresh environment
 -- so globals such as Inbox, Handler coroutines, etc. stay sandbox-local.
 local compat_require = require -- after aolite.compat this is the dualRequire
-local log = require(".log")
+local createAO = require("aolite.factories.ao")
+local createHandlers = require("aolite.factories.handlers")
 
--- helper to shallow-clone a table (used to seed env.package.loaded)
-local function clone(tbl)
-  local t = {}
-  for k, v in pairs(tbl) do
-    t[k] = v
-  end
-  return t
-end
-
-return function(ao, Handlers)
-  assert(type(ao) == "table" and type(Handlers) == "table", "ao and Handlers required")
+return function(processId, moduleId)
+  -- Create new Handlers & AO
+  local handlers = createHandlers(processId)
+  local ao = createAO(processId, moduleId, handlers)
 
   -- fresh environment that inherits from _G but shadows its own globals
-  local env = { ao = ao, Handlers = Handlers }
+  local env = { ao = ao, Handlers = handlers }
   env._G = env -- make self-contained
   env._ENV = env
 
@@ -27,8 +21,8 @@ return function(ao, Handlers)
     loaded = {
       ["ao"] = ao,
       [".ao"] = ao,
-      ["Handlers"] = Handlers,
-      [".handlers"] = Handlers,
+      ["Handlers"] = handlers,
+      [".handlers"] = handlers,
     },
   }
 
@@ -72,8 +66,35 @@ return function(ao, Handlers)
 
   setmetatable(env, { __index = _G })
 
-  -- Execute upstream process code inside this env
-  local process = compat_require("aos.process.process", env)
+  ---------------------------------------------------------------------------
+  -- 2. Load the process implementation ------------------------------------
+  -- If the caller provided a specific `moduleId` attempt to resolve it
+  -- *inside the sandbox* first.  This allows users to provide their own Lua
+  -- modules simply by publishing them on the regular Lua `package.path`.
+  -- If the load fails for any reason (not found, syntax error, etc.) we
+  -- gracefully fall back to the reference implementation so that the
+  -- simulator keeps working.
+  ---------------------------------------------------------------------------
+  local process
+  do
+    local function tryRequire(mod)
+      local ok, res = pcall(compat_require, mod, env)
+      if ok then
+        return res
+      end
+    end
+
+    if moduleId and moduleId ~= "" and moduleId ~= "DefaultDummyModule" then
+      -- Attempt to require the module from the file system first.
+      process = tryRequire(moduleId)
+    end
+
+    -- Fallback to the built-in reference implementation when the custom
+    -- module could not be loaded or returned nil / non-table.
+    if not process or type(process) ~= "table" then
+      process = compat_require("aos.process.process", env)
+    end
+  end
 
   -- Expose the sandbox so the caller can reuse it
   process._env = env
@@ -151,6 +172,25 @@ return function(ao, Handlers)
           end
         end
         local res = { origHandle(msg, _) }
+
+        ----------------------------------------------------------------
+        -- If the custom module returned an outbox *value* instead of
+        -- populating ao.outbox directly (the canonical pattern for the
+        -- reference module), adopt that here so the simulator can continue
+        -- using its regular delivery pipeline.
+        ----------------------------------------------------------------
+        if (#ao.outbox.Messages == 0) and (type(res[1]) == "table") then
+          local candidate = res[1]
+          if candidate.Messages or candidate.Spawns or candidate.Assignments or candidate.Output or candidate.Error then
+            ao.outbox = {
+              Messages = candidate.Messages or {},
+              Spawns = candidate.Spawns or {},
+              Assignments = candidate.Assignments or {},
+              Output = candidate.Output or {},
+              Error = candidate.Error,
+            }
+          end
+        end
 
         -- After handler: copy any newly queued outbox items to global store
         local parent = envRef and envRef._parent
