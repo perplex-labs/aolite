@@ -124,4 +124,15 @@ function M.reorderQueue(processId, newOrderIds)
   end
 end
 
+function M.setPrintProcessOutput(mode)
+  if type(mode) ~= "boolean" then
+    error("setPrintProcessOutput expects a boolean")
+  end
+  env.printProcessOutput = mode
+end
+
+function M.isPrintProcessOutput()
+  return env.printProcessOutput == true
+end
+
 return M

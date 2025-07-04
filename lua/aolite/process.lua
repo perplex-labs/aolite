@@ -26,6 +26,16 @@ local function appendMsgLog(env, msg)
   file:close()
 end
 
+local function flushProcessOutput(env, processId, runtimeEnv)
+  if not env.printProcessOutput then
+    return
+  end
+  local out = runtimeEnv.ao and runtimeEnv.ao.outbox and runtimeEnv.ao.outbox.Output
+  if out and out.data and out.data ~= "" then
+    log.debug("[" .. processId .. "] " .. tostring(out.data))
+  end
+end
+
 local function findTag(tags, tname)
   if not tags then
     return nil
@@ -111,7 +121,15 @@ local function addMsgToQueue(env, msg)
     local action = findTag(msg.Tags, "Action")
     if action ~= "EvalRequest" and action ~= "EvalResponse" then
       log.debug(
-        "[message]: " .. msg.From .. " -> " .. msg.Target .. " (Action = " .. (action or "nil") .. ") " .. msg.Id
+        "[\27[34maolite\27[0m] message "
+          .. msg.From
+          .. " -> "
+          .. msg.Target
+          .. " (Action = "
+          .. (action or "nil")
+          .. ", Id = "
+          .. msg.Id
+          .. ")"
       )
     end
   end
@@ -203,7 +221,7 @@ function process.spawnProcess(env, processId, dataOrPath, initEnv, ownerId)
     error("aolite: Process with ID " .. processId .. " already exists")
   end
   local moduleId = tagMap.Module or "DefaultDummyModule"
-  log.debug("> LOG: Spawning process id:" .. processId .. " & module:" .. moduleId)
+  log.debug("[\27[34maolite\27[0m] spawning process id: " .. processId .. " & module: " .. moduleId)
 
   local processModule = createProcess(processId, moduleId)
 
@@ -292,6 +310,7 @@ function process.spawnProcess(env, processId, dataOrPath, initEnv, ownerId)
           runtimeEnv.Process.Tags = arr
         end
         processModule.handle(msg, runtimeEnv)
+        flushProcessOutput(env, processId, runtimeEnv)
         env.processed[msg.Id] = true
       end
     end
@@ -313,6 +332,9 @@ function process.spawnProcess(env, processId, dataOrPath, initEnv, ownerId)
     end
   end
   runtimeEnv.require("aolite.eval")
+
+  -- Print any on-boot prints if printProcessOutput is enabled
+  flushProcessOutput(env, processId, runtimeEnv)
 
   -- Ensure AO table knows its environment before any messages arrive
   ao.env = runtimeEnv

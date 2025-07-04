@@ -47,7 +47,6 @@ describe("module & From-Module tag", function()
     )
 
     local processEnv = aolite.eval(spawnId, "return ao.env.Process")
-    log.debug("processEnv", processEnv)
     assert.is_not_nil(processEnv)
     assert.are.equal("module-1", processEnv.Tags["From-Module"])
     assert.are.equal("other-module", processEnv.Tags["Module"])

@@ -10,6 +10,7 @@ function LocalAOEnv.new()
     ready = {}, -- set of processIds that have messages (and need scheduling)
     autoSchedule = true,
     messageLogPath = os.getenv("AOLITE_MSG_LOG"),
+    printProcessOutput = (os.getenv("AOLITE_PRINT_OUTPUT") or "") ~= "" and os.getenv("AOLITE_PRINT_OUTPUT") ~= "0",
   }
   return self
 end
