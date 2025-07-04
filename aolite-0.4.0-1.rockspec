@@ -1,9 +1,9 @@
 rockspec_format = "3.0"
 package = "aolite"
-version = "0.3.0-2"
+version = "0.4.0-1"
 source = {
    url = "git://github.com/perplex-labs/aolite",
-   tag = "v0.3.0"
+   tag = "v0.4.0"
 }
 description = {
    summary = "A local, concurrent emulation of the AO protocol for testing Lua processes.",
