@@ -111,7 +111,15 @@ local function addMsgToQueue(env, msg)
     local action = findTag(msg.Tags, "Action")
     if action ~= "EvalRequest" and action ~= "EvalResponse" then
       log.debug(
-        "[message]: " .. msg.From .. " -> " .. msg.Target .. " (Action = " .. (action or "nil") .. ") " .. msg.Id
+        "[\27[34maolite\27[0m] message "
+          .. msg.From
+          .. " -> "
+          .. msg.Target
+          .. " (Action = "
+          .. (action or "nil")
+          .. ", Id = "
+          .. msg.Id
+          .. ")"
       )
     end
   end
@@ -203,7 +211,7 @@ function process.spawnProcess(env, processId, dataOrPath, initEnv, ownerId)
     error("aolite: Process with ID " .. processId .. " already exists")
   end
   local moduleId = tagMap.Module or "DefaultDummyModule"
-  log.debug("> LOG: Spawning process id:" .. processId .. " & module:" .. moduleId)
+  log.debug("[\27[34maolite\27[0m] spawning process id: " .. processId .. " & module: " .. moduleId)
 
   local processModule = createProcess(processId, moduleId)
 
@@ -292,6 +300,14 @@ function process.spawnProcess(env, processId, dataOrPath, initEnv, ownerId)
           runtimeEnv.Process.Tags = arr
         end
         processModule.handle(msg, runtimeEnv)
+        -- Print any printed output to real stdout if the feature is enabled
+        if env.printProcessOutput then
+          local out = runtimeEnv.ao and runtimeEnv.ao.outbox and runtimeEnv.ao.outbox.Output
+          if out and out.data and out.data ~= "" then
+            -- Prefix with process id for clarity
+            log.debug("[" .. processId .. "] " .. tostring(out.data))
+          end
+        end
         env.processed[msg.Id] = true
       end
     end
@@ -313,6 +329,14 @@ function process.spawnProcess(env, processId, dataOrPath, initEnv, ownerId)
     end
   end
   runtimeEnv.require("aolite.eval")
+
+  -- Print any on-boot prints if printProcessOutput is enabled
+  if env.printProcessOutput then
+    local out = ao.outbox and ao.outbox.Output
+    if out and out.data and out.data ~= "" then
+      log.debug("[" .. processId .. "] " .. tostring(out.data))
+    end
+  end
 
   -- Ensure AO table knows its environment before any messages arrive
   ao.env = runtimeEnv

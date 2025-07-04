@@ -13,7 +13,7 @@ A local, concurrent emulation of the Arweave AO protocol for testing Lua process
 - **Message Passing:** A simple API for sending messages between processes.
 - **Process State Access:** Directly run Eval inside any process to access or modify its state.
 - **Scheduler Control:** Supports both automatic and manual scheduling of process message queues.
-- **Controlled Logging:** Supports logging at different levels of verbosity.
+- **Controlled Logging:** Supports logging at different levels of verbosity, logging to a file, and logging process output.
 
 ## Requirements
 
@@ -125,6 +125,8 @@ lua examples/ping_pong.lua
 - `aolite.listQueueMessages(processId)`: Get the full list of messages in the queue for a specific process.
 - `aolite.reorderQueue(processId, msgIds)`: Manually reorder the queue for a specific process.
 - `aolite.clearAllProcesses()`: Clears all processes from the environment.
+- `aolite.setMessageLog(path)`: Set the path to a file where all messages will be logged.
+- `aolite.setPrintProcessOutput(boolean)`: Enable or disable printing process output with `log.debug`
 
 ## Logging
 
@@ -149,6 +151,25 @@ and use the log module yourself:
 local log = require("aolite.lib.log")
 log.debug("This is a debug message")
 ```
+
+### Process Output
+
+If you wish to capture process output and print it to stdout (using `log.debug`, so PrintVerb needs to be set to 3), set the
+`AOLITE_PRINT_OUTPUT` environment variable to a non-empty, non-"0" value.
+
+```bash
+AOLITE_PRINT_OUTPUT=1 lua test.lua
+```
+
+You can also toggle this at runtime using `aolite.setPrintProcessOutput`:
+
+```lua
+aolite.setPrintProcessOutput(true)
+```
+
+This allows you to see the output (from the process's outbox.Output) of processes as they run, which is useful for debugging. The default AOS module puts all `print` statements into the outbox.Output.
+
+### File Logging
 
 If you wish to capture every message exchanged between processes, set the
 `AOLITE_MSG_LOG` environment variable to a file path or configure it at runtime
