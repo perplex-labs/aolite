@@ -28,3 +28,7 @@ Handlers.add("EvalRequestHandler", "EvalRequest", function(msg)
     })
   end
 end)
+
+-- NOTE: This is simply to silence the EvalResponse message generated above
+--       (prevents the default handler from printing a new message received)
+Handlers.prepend("EvalResponseHandler", "EvalResponse", function() end)
