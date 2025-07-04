@@ -283,6 +283,13 @@ function process.spawnProcess(env, processId, dataOrPath, initEnv, ownerId)
         if not ao.isAssignment(msg) and env.processed[msg.Id] then
           error("aolite: Message already processed: " .. msg.Id)
         end
+        if runtimeEnv.Process.Tags[1] == nil then -- not an array any more
+          local arr = {}
+          for k, v in pairs(runtimeEnv.Process.Tags) do
+            table.insert(arr, { name = k, value = v })
+          end
+          runtimeEnv.Process.Tags = arr
+        end
         processModule.handle(msg, runtimeEnv)
         env.processed[msg.Id] = true
       end
