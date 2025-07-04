@@ -2,8 +2,6 @@ local process = {}
 
 local log = require(".log")
 local json = require(".json")
-local createAO = require("aolite.factories.ao")
-local createHandlers = require("aolite.factories.handlers")
 local createProcess = require("aolite.factories.process")
 
 local initialEnv = {} -- your old `initialEnv`, if you still need it
@@ -88,7 +86,9 @@ local function ensureStandardMessageFields(env, msg, sourceId)
     -- Derive the module id from the process that is sending the message
     local sender = msg.From and env.processes and env.processes[msg.From]
     msg.Module = sender.ao._module
-    table.insert(msg.Tags, { name = "From-Module", value = msg.Module })
+    if not findObject(msg.Tags, "name", "From-Module") then
+      table.insert(msg.Tags, { name = "From-Module", value = msg.Module })
+    end
   end
 end
 
@@ -202,19 +202,9 @@ function process.spawnProcess(env, processId, dataOrPath, initEnv, ownerId)
   if env.processes[processId] then
     error("aolite: Process with ID " .. processId .. " already exists")
   end
-  log.debug("> LOG: Spawning process with ID: " .. processId)
-
   local moduleId = tagMap.Module or "DefaultDummyModule"
 
-  -- Create new Handlers & AO
-  log.debug("> LOG: Creating handlers for: " .. processId .. " with module: " .. moduleId)
-  local handlers = createHandlers(processId)
-  local ao = createAO(handlers)
-  local processModule = createProcess(ao, handlers)
-
-  ao.authorities = { "DummyAuthority" }
-  ao.id = processId
-  ao._module = moduleId
+  local processModule = createProcess(processId, moduleId)
 
   -- AFTER you obtained processModule from createProcess(...)
   local runtimeEnv = assert(processModule._env, "process sandbox missing")
@@ -237,16 +227,31 @@ function process.spawnProcess(env, processId, dataOrPath, initEnv, ownerId)
     end
   end
 
-  runtimeEnv.Inbox = {} -- isolated inbox
-  runtimeEnv._parent = env -- pointer to aolite host
-  runtimeEnv.Receive = function(match) -- helper, as before
-    return handlers.receive(match)
+  runtimeEnv.Inbox = {} -- isolated inbox for this process
+  runtimeEnv._parent = env -- pointer back to simulator host
+
+  -- Provide a convenience Receive() helper *only* if the sandbox exposes
+  -- Handlers with a `receive` method and if the module hasn't defined its
+  -- own Receive already.
+  if runtimeEnv.Receive == nil then
+    local hs = runtimeEnv.Handlers
+    if type(hs) == "table" and type(hs.receive) == "function" then
+      runtimeEnv.Receive = function(match)
+        return hs.receive(match)
+      end
+    end
   end
 
-  -- if the upstream code put its own Receive, keep that
+  -- Allow the module itself to override the helper with its own
   if type(processModule.Receive) == "function" then
     runtimeEnv.Receive = processModule.Receive
   end
+
+  ------------------------------------------------------------------
+  -- Persist references so the simulator can access them later      --
+  ------------------------------------------------------------------
+  local ao = runtimeEnv.ao -- same table the sandbox uses
+  local handlers = runtimeEnv.Handlers
 
   -- From here on, treat 'runtimeEnv' as the authoritative sandbox
   ao.env = runtimeEnv
