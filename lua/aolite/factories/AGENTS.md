@@ -25,7 +25,7 @@ and to execute code in a caller-supplied environment.
 | ------------------------ | -------------------------- | --------------- |
 | **`ao.lua`**             | `createAO(Handlers)`       | Builds a fresh sandbox, loads `aos.process.ao`, initialises assignment helpers, returns the new AO table. |
 | **`handlers.lua`**       | `createHandlers(pid)`      | Executes upstream `aos.process.handlers` in its own env so every process keeps an independent handler list. |
-| **`process.lua`**        | `createProcess(ao, Handlers)` | Runs `aos.process.process` inside a sandbox bound to the supplied `ao` & `Handlers`.  Adds back-compat helpers `getMsgs`, `clearInbox`, and wraps `handle()` to mirror inbox/outbox into AOLite's global stores. |
+| **`process.lua`**        | `createProcess(ao, Handlers)` | Runs `aos.process.process` inside a sandbox bound to the supplied `ao` & `Handlers`.  Adds a back-compat helper `getMsgs` (now reading from AOLite’s per-process *history*) and wraps `handle()` so every generated message is mirrored into the simulator’s global stores. |
 
 ---
 
@@ -57,14 +57,15 @@ hermetically-sealed AO runtime for every simulated process.
 
 ### Notable Helpers Added by `process.lua`
 
-* **`getMsgs(matchSpec, fromFirst?, count?)`** – scans the sandbox inbox using
-  upstream `utils.matchesSpec`; returns a slice matching the predicate.
-* **`clearInbox()`** – empties the sandbox inbox and the parent's stored copy.
+* **`getMsgs(matchSpec, fromFirst?, count?)`** – returns messages from the
+  simulator-managed `env._parent.history[processId]` array (one Id per
+  message, in arrival order).  Uses upstream `utils.matchesSpec` for
+  filtering and no longer consults the sandbox `Inbox`, making the result
+  immune to user-code mutations.
 * **`handle(msg, _)` (wrapped)** – intercepts each inbound message to:
-  1. keep an authoritative inbox in `env.Inbox`,
-  2. duplicate self-addressed outbox messages back into that inbox, and
-  3. mirror every generated message/spawn/assignment into AOLite's
-     `env.messageStore` for global introspection.
+  1. ensure `env.history` is kept in sync,
+  2. mirror every generated message / spawn / assignment into
+     `env.messageStore` so they are globally visible.
 
 ---
 

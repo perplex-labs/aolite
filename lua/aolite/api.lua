@@ -4,7 +4,7 @@ local serialize = require(".serialize")
 local scheduler = require("aolite.scheduler")
 local process = require("aolite.process")
 
-function api.send(env, msg, clearInbox)
+function api.send(env, msg)
   assert(type(msg.From) == "string", "From must be defined")
   assert(type(msg.Target) == "string", "Target must be defined")
 
@@ -12,14 +12,27 @@ function api.send(env, msg, clearInbox)
   if not fromProc then
     error("aolite: No such process: " .. tostring(msg.From))
   end
-  if clearInbox then
-    fromProc.process.clearInbox()
-  end
 
   local queuedMsg = fromProc.ao.send(msg)
   process.send(env, queuedMsg, msg.From)
 
   return queuedMsg
+end
+
+-- Clear all recorded messages for a given process (history + sandbox inbox).
+function api.clearAllMessages(env, processId)
+  if not processId then
+    error("processId must be provided")
+  end
+
+  -- Reset history bucket
+  env.history = env.history or {}
+  env.history[processId] = {}
+
+  -- Note: We deliberately leave env.messageStore untouched so that other
+  -- processes referencing older messages keep working.
+
+  return true
 end
 
 function api.getFirstMsg(env, processId, matchSpec)

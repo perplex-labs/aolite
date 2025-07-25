@@ -118,6 +118,22 @@ local function addMsgToQueue(env, msg)
     env.messageStore[msg.Id] = msg
     table.insert(env.queues[msg.Target], msg.Id)
 
+    env.history = env.history or {}
+    env.history[msg.Target] = env.history[msg.Target] or {}
+    local hist = env.history[msg.Target]
+    if
+      msg.Id
+      and not (function()
+        for _, id in ipairs(hist) do
+          if id == msg.Id then
+            return true
+          end
+        end
+      end)()
+    then
+      table.insert(hist, msg.Id)
+    end
+
     local action = findTag(msg.Tags, "Action")
     if action ~= "EvalRequest" and action ~= "EvalResponse" then
       log.debug(
@@ -191,6 +207,14 @@ function process.deliverOutbox(env, fromId, pushedFor)
           if env.queues[pid] then
             table.insert(env.queues[pid], refMsg.Id)
             env.ready[pid] = true
+
+            -- Keep per-process history consistent: record the assignment for
+            -- each recipient so helper functions (getMsgs, etc.) return
+            -- accurate data even for messages delivered via Assignments.
+            env.history = env.history or {}
+            env.history[pid] = env.history[pid] or {}
+            local hist = env.history[pid]
+            table.insert(hist, refMsg.Id)
           else
             error("aolite: Target process not found: " .. tostring(pid))
           end
