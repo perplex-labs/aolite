@@ -53,6 +53,12 @@ describe("ao.assign", function()
       Data = "Hello, world!",
     })
 
+    local lastMsg1 = aolite.getLastMsg("receiver-1")
+    local lastMsg2 = aolite.getLastMsg("receiver-2")
+    assert.are.equal("Assign-Test", lastMsg1.Action)
+    assert.are.equal("Assign-Test", lastMsg2.Action)
+    assert.are.equal(lastMsg1.Id, lastMsg2.Id)
+
     local state1 = aolite.eval("receiver-1", "MY_STATE")
     local state2 = aolite.eval("receiver-2", "MY_STATE")
     assert.are.equal("Hello, world!", state1)
