@@ -121,18 +121,7 @@ local function addMsgToQueue(env, msg)
     env.history = env.history or {}
     env.history[msg.Target] = env.history[msg.Target] or {}
     local hist = env.history[msg.Target]
-    if
-      msg.Id
-      and not (function()
-        for _, id in ipairs(hist) do
-          if id == msg.Id then
-            return true
-          end
-        end
-      end)()
-    then
-      table.insert(hist, msg.Id)
-    end
+    table.insert(hist, msg.Id)
 
     local action = findTag(msg.Tags, "Action")
     if action ~= "EvalRequest" and action ~= "EvalResponse" then
