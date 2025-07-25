@@ -106,16 +106,16 @@ return function(processId, moduleId)
     -- filter over env.Inbox we maintain
     local function getMsgs(matchSpec, fromFirst, count)
       local utils = env.require(".utils")
-      -- Use the Inbox maintained in the sandbox environment (set by ao.init)
-      -- rather than the factory-local shadow.  This guarantees we see the
-      -- same messages that the process itself sees when handling events.
-      local src = env.Inbox or {}
+      -- Use the per-process arrival history that aolite maintains.
+      -- History gives us message IDs in chronological order, each exactly once.
+      local parent = env._parent
+      local historyIds = (parent and parent.history and parent.history[processId]) or {}
       local results = {}
       fromFirst = fromFirst or false
       local maxCount = (count and count > 0) and count or nil
 
       local function maybeAdd(m)
-        if not matchSpec or utils.matchesSpec(m, matchSpec) then
+        if m and (not matchSpec or utils.matchesSpec(m, matchSpec)) then
           table.insert(results, m)
           if maxCount and #results >= maxCount then
             return true
@@ -124,14 +124,16 @@ return function(processId, moduleId)
       end
 
       if fromFirst then
-        for i = 1, #src do
-          if maybeAdd(src[i]) then
+        for i = 1, #historyIds do
+          local m = parent and parent.messageStore[historyIds[i]]
+          if m and maybeAdd(m) then
             break
           end
         end
       else
-        for i = #src, 1, -1 do
-          if maybeAdd(src[i]) then
+        for i = #historyIds, 1, -1 do
+          local m = parent and parent.messageStore[historyIds[i]]
+          if m and maybeAdd(m) then
             break
           end
         end
@@ -139,18 +141,6 @@ return function(processId, moduleId)
       return results
     end
     process.getMsgs = getMsgs
-  end
-
-  if not process.clearInbox then
-    process.clearInbox = function()
-      local cleared = #(env.Inbox or {})
-      local newBox = {}
-      env.Inbox = newBox
-      if ao.env then
-        ao.env.Inbox = newBox
-      end
-      return cleared
-    end
   end
 
   -- ------------------------------------------------------------------
@@ -165,7 +155,6 @@ return function(processId, moduleId)
         local envRef = _.Process and _ or (_.env or _)
         if envRef then
           envRef.Inbox = envRef.Inbox or {}
-          table.insert(envRef.Inbox, msg)
           local parent = envRef._parent
           if parent and parent.messageStore and msg.Id then
             parent.messageStore[msg.Id] = msg
@@ -205,43 +194,6 @@ return function(processId, moduleId)
               parent.messageStore[s.Id] = s
             end
           end
-        end
-
-        -- Duplicate *only self-addressed* outbox messages into the sandbox
-        -- inbox. This prevents other outbound traffic from polluting the
-        -- caller's history and avoids duplicate entries when the same
-        -- message is already present.
-        if envRef then
-          envRef.Inbox = envRef.Inbox or {}
-          -- Ensure both the sandbox (_ENV) and the outer processEnv share
-          -- the very same Inbox table so there is only ONE authoritative
-          -- copy.
-          if env.Inbox ~= envRef.Inbox then
-            env.Inbox = envRef.Inbox
-          end
-
-          -- Build a quick set of already-present message IDs to de-duplicate.
-          local seen = {}
-          for _, existing in ipairs(envRef.Inbox) do
-            if existing.Id then
-              seen[existing.Id] = true
-            end
-          end
-
-          local myId = envRef.Process and envRef.Process.Id
-
-          local function maybeCopy(arr)
-            for _, m in ipairs(arr) do
-              if m.Target == myId and m.Id and not seen[m.Id] then
-                table.insert(envRef.Inbox, m)
-                seen[m.Id] = true
-              end
-            end
-          end
-
-          maybeCopy(ao.outbox.Messages)
-          -- Spawn / Assignment records do not target this process directly,
-          -- so we deliberately skip them here.
         end
 
         return table.unpack(res)

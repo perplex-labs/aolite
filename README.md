@@ -113,6 +113,7 @@ lua examples/ping_pong.lua
 
 - `aolite.spawnProcess(processId, dataOrPath, tags)`: Spawns a new process from source code or a file path.
 - `aolite.send(msg)`: Sends a message to a process. The scheduler runs automatically by default.
+- `aolite.clearAllMessages(processId)`: Clears *only* the message history (internal to aolite) of the given process without touching other state.
 - `aolite.getAllMsgs(processId)`: Returns all messages sent to a given process.
 - `aolite.getLastMsg(processId)`: Returns only the last message sent to a given process.
 - `aolite.getFirstMsg(processId)`: Returns only the first message sent to a given process.

@@ -12,14 +12,19 @@ function M.spawnProcess(originalId, dataOrPath, tags)
   return process.spawnProcess(env, originalId, dataOrPath, tags)
 end
 
-function M.send(msg, clearInbox)
-  local queuedMsg = api.send(env, msg, clearInbox)
+function M.send(msg)
+  local queuedMsg = api.send(env, msg)
 
   if env.autoSchedule then
     scheduler.run(env)
   end
 
   return queuedMsg
+end
+
+-- Clear per-process message history (Inbox + aolite history bucket)
+function M.clearAllMessages(processId)
+  return api.clearAllMessages(env, processId)
 end
 
 function M.getFirstMsg(processId, matchSpec)
@@ -62,6 +67,7 @@ function M.clearAllProcesses()
   env.processed = {}
   env.ready = {}
   env.coroutines = {}
+  env.history = {}
   -- defensive: clear any stray global fallback inbox
   _G.Inbox = {}
 end
