@@ -12,6 +12,27 @@ return function(processId, moduleId)
 
   -- fresh environment that inherits from _G but shadows its own globals
   local env = { ao = ao, Handlers = handlers }
+
+  -- Create a private copy of every global so that mutations made by the
+  -- process stay inside its sandbox.  We clone each global table once so
+  -- that statements such as `os.time = ...` affect only this copy.
+  local function __aolite_shallow_copy(t)
+    local c = {}
+    for k, v in pairs(t) do
+      c[k] = v
+    end
+    return c
+  end
+
+  for k, v in pairs(_G) do
+    if k ~= "_G" and k ~= "_ENV" and env[k] == nil then
+      if type(v) == "table" then
+        env[k] = __aolite_shallow_copy(v)
+      else
+        env[k] = v
+      end
+    end
+  end
   env._G = env -- make self-contained
   env._ENV = env
 
@@ -64,7 +85,11 @@ return function(processId, moduleId)
     error(res)
   end
 
-  setmetatable(env, { __index = _G })
+  setmetatable(env, {
+    __index = function()
+      return nil
+    end,
+  })
 
   ---------------------------------------------------------------------------
   -- 2. Load the process implementation ------------------------------------
